@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Pricing — Delta One{% endblock %}
+
+{% block head %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+{% endblock %}
+
+{% block nav %}
+<header class="site-header" role="banner">
+  <nav class="nav container--wide" aria-label="Primary navigation">
+    <a href="{{ url_for('public.landing') }}" class="nav-logo" aria-label="Delta One home">
+      <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:28px;width:auto">
+      <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:28px;width:auto">
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="{{ url_for('public.landing') }}#how">How it works</a></li>
+      <li><a href="{{ url_for('public.landing') }}#features">Features</a></li>
+      <li><a href="{{ url_for('public.pricing') }}">Pricing</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="{{ url_for('auth.login') }}" class="btn-ghost">Log in</a>
+      <a href="{{ url_for('auth.signup') }}" class="btn-primary">Get started</a>
+    </div>
+  </nav>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="pricing-section" style="padding-top: clamp(120px, 15vw, 180px);" aria-labelledby="pricing-title">
+  <div class="container">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title" id="pricing-title">Start free. <em>Scale when you're ready.</em></h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-tier">Delta Core</div>
+        <div class="pricing-price">
+          <span class="amount">$0</span>
+          <span class="period">/ month</span>
+        </div>
+        <p class="pricing-desc">Build your market knowledge foundation. Free, permanently.</p>
+        <ul class="pricing-features">
+          <li>Modular lesson pathway</li>
+          <li>Applied market simulations</li>
+          <li>AI learning assistant</li>
+          <li>Integrated notes system</li>
+          <li>Basic news &amp; macro context</li>
+          <li class="dim">Real-time charts</li>
+          <li class="dim">Live terminal workspace</li>
+        </ul>
+        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Get started free</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">For active learners</div>
+        <div class="pricing-tier">Delta Pro</div>
+        <div class="pricing-price">
+          <span class="amount">$20</span>
+          <span class="period">/ month</span>
+        </div>
+        <p class="pricing-desc">Everything in Core plus a live terminal workspace for real-time market understanding.</p>
+        <ul class="pricing-features">
+          <li>Everything in Delta Core</li>
+          <li>Live multi-pane terminal</li>
+          <li>Real-time charts via Alpaca</li>
+          <li>News &amp; sentiment with AI context</li>
+          <li>Macro event overlay</li>
+          <li>Synchronized event workspace</li>
+          <li>AI explains — never directs</li>
+        </ul>
+        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Join Pro waitlist</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer" role="contentinfo">
+  <div class="container--wide">
+    <div class="footer-grid">
+      <div>
+        <a href="{{ url_for('public.landing') }}" class="nav-logo" style="margin-bottom:var(--space-2)" aria-label="Delta One">
+          <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:24px;width:auto">
+          <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:24px;width:auto">
+        </a>
+        <p class="footer-copy">&copy; 2026 Delta One. All rights reserved.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="{{ url_for('public.landing') }}#how">How it works</a>
+        <a href="{{ url_for('public.pricing') }}">Pricing</a>
+        <a href="https://www.linkedin.com/company/thedeltaone" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://instagram.com/thedeltaone" target="_blank" rel="noopener noreferrer">Instagram</a>
+      </nav>
+    </div>
+    <div class="footer-disclaimer">
+      <strong>Disclaimer:</strong> Delta One provides algorithmic signals for informational and educational purposes only. Nothing on this platform constitutes financial advice, investment recommendations, or solicitation to buy or sell securities. Past signal performance does not guarantee future results. Trading involves substantial risk of loss. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions.
+    </div>
+  </div>
+</footer>
+{% endblock %}

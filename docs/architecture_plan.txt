@@ -1,0 +1,505 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  DELTA ONE — ARCHITECTURE & IMPLEMENTATION PLAN             ║
+║                  Current as of codebase state (post-Phase 5d/6)             ║
+║                  Date: 2026-06-19                                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+────────────────────────────────────────────────────────────────────────────────
+TABLE OF CONTENTS
+────────────────────────────────────────────────────────────────────────────────
+  1.  Tech Stack
+  2.  Directory Structure (CURRENT)
+  3.  Database Schema (PostgreSQL)
+  4.  Route Map (Flask)
+  5.  Frontend: Workspace Terminal Multiplexer
+  6.  Current Build Status (Phases 0-6)
+  7.  Future Considerations
+
+────────────────────────────────────────────────────────────────────────────────
+1.  TECH STACK
+────────────────────────────────────────────────────────────────────────────────
+
+  ┌──────────────┬──────────────────────────────────────────────────────┐
+  │ Layer        │ Choice                                               │
+  ├──────────────┼──────────────────────────────────────────────────────┤
+  │ Backend      │ Flask (create_app factory pattern)                   │
+  │ Database     │ PostgreSQL (local dev)                               │
+  │ ORM          │ SQLAlchemy (Flask-SQLAlchemy)                        │
+  │ Migrations   │ Flask-Migrate (Alembic)                              │
+  │ Auth         │ Flask-Login + Werkzeug password hashing              │
+  │ Templates    │ Jinja2 (workspace shell, landing, auth)              │
+  │ Frontend JS  │ Vanilla JS — workspace multiplexer, admin panel      │
+  │ AI           │ Groq API (llama3-70b-8192) via groq SDK              │
+  │              │ Free tier: 20 queries/day, Pro: unlimited            │
+  │ CSS          │ base.css (public), workspace.css, admin.css          │
+  │ Payments     │ Stripe — not yet integrated                          │
+  │ Hosting      │ Local dev; TBD for production                        │
+  └──────────────┴──────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+2.  DIRECTORY STRUCTURE (CURRENT)
+────────────────────────────────────────────────────────────────────────────────
+
+  delta-one/
+  │
+  ├── sweep_main.py              # Live trading loop (standalone)
+  ├── sweep_strategy.py          # Strategy engine (pure logic)
+  ├── sweep_data.py              # Data fetcher (Alpaca API)
+  ├── sweep_backtest.py          # Backtest engine (yfinance)
+  ├── sweep_config.py            # All tunable parameters
+  ├── sweep_state.py             # Position state (positions.json)
+  ├── sweep_runner.py            # Trade tracker helper
+  ├── sweep_csv.py               # CSV logger + DB write (dual)
+  ├── bot_logger.py              # Logging setup
+  │
+  ├── app/                       # Flask application package
+  │   ├── __init__.py             #   create_app() factory
+  │   ├── extensions.py           #   SQLAlchemy, Migrate, LoginManager, CSRF
+  │   ├── config.py               #   Config classes (Dev/Prod/Test)
+  │   │
+  │   ├── models/                # SQLAlchemy models (9 total)
+  │   │   ├── __init__.py         #   Model registry
+  │   │   ├── user.py             #   User (Flask-Login UserMixin)
+  │   │   ├── session.py          #   Session audit trail
+  │   │   ├── module.py           #   Curriculum module grouping
+  │   │   ├── lesson.py           #   Individual lesson
+  │   │   ├── progress.py         #   UserProgress (tracking)
+  │   │   ├── bot_event.py        #   BotEvent (replaces CSV)
+  │   │   ├── waitlist_entry.py   #   Landing page signups
+  │   │   └── ai_interaction.py   #   Groq AI query log
+  │   │
+  │   ├── routes/                # Flask blueprints (4 active)
+  │   │   ├── __init__.py         #   register_blueprints()
+  │   │   ├── public.py           #   / — landing, pricing, waitlist
+  │   │   ├── auth.py             #   /auth/* — login, signup, logout
+  │   │   ├── api.py              #   /api/* — summary, activity, symbols,
+  │   │   │                       #            footer, signals, AI ask
+  │   │   ├── workspace.py        #   /workspace/* — main authenticated UX
+  │   │   │                       #     shell, api/modules, api/lessons,
+  │   │   │                       #     mark complete
+  │   │   └── admin.py            #   /admin/* — usage, users, system, bot health
+  │   │
+  │   ├── services/              # Business logic layer
+  │   │   ├── __init__.py         #   Service registry
+  │   │   ├── auth_service.py     #   User creation, authentication
+  │   │   ├── curriculum.py       #   Module/lesson/progress logic
+  │   │   ├── signal_explainer.py #   Bot signal → educational text
+  │   │   └── ai_service.py       #   Groq API wrapper + rate limiting
+  │   │
+  │   ├── utils/                 # Helper modules
+  │   │   ├── __init__.py
+  │   │   └── market.py           #   TIMEZONE, SYMBOLS, now_et(),
+  │   │                           #   market_open_state(), compute_health()
+  │   │
+  │   ├── forms/                 # WTForms
+  │   │   ├── __init__.py
+  │   │   └── auth_forms.py       #   LoginForm, SignupForm
+  │   │
+  │   └── templates/             # Jinja2 templates (11 files)
+  │       ├── base.html           #   Base layout (head, nav block, content)
+  │       ├── public/
+  │       │   ├── landing.html    #     Full landing page
+  │       │   └── pricing.html    #     Pricing tiers
+  │       ├── auth/
+  │       │   ├── login.html      #     Login form
+  │       │   └── signup.html     #     Signup form
+  │       ├── workspace/
+  │       │   └── shell.html      #     3-column terminal multiplexer
+  │       ├── admin/
+  │       │   └── shell.html      #     Admin panel layout
+  │       ├── components/
+  │       │   └── nav.html        #     Unauthenticated nav partial
+  │       └── errors/
+  │           ├── 404.html        #     Not found
+  │           └── 500.html        #     Server error
+  │
+  ├── static/
+  │   ├── base.css                # Shared styles (public pages, errors)
+  │   ├── landing.css             # Landing page styles
+  │   ├── landing.js              # Landing page interactivity
+  │   ├── workspace.css           # 3-column terminal multiplexer styles
+  │   ├── workspace.js            # View switching, concept tree, signals,
+  │   │                           #   notes, AI terminal, focus param
+  │   ├── admin.css               # Admin panel styles
+  │   └── admin.js                # Admin panel interactivity
+  │
+  ├── assets/                    # Logo images (Logo.png, Logo-dark.png, Logo-white.png)
+  ├── logs/                      # sweep_bot.log
+  ├── data/                      # bot_events.csv (legacy, dual-written)
+  ├── seeds/
+  │   ├── __init__.py
+  │   └── curriculum_seed.py      # Seeds 5 modules, 19 lessons
+  │
+  ├── migrations/                # Alembic (Flask-Migrate)
+  │   ├── alembic.ini
+  │   ├── env.py
+  │   └── versions/
+  │       ├── 41e3b869f781_initial_migration_all_core_models.py
+  │       └── d6446c5ba1cd_add_ai_interactions_table.py
+  │
+  ├── tests/
+  │   ├── __init__.py
+  │   └── test_smoke.py
+  │
+  ├── requirements.txt
+  ├── README.md
+  ├── DevLog.txt                 # Plain-English development log
+  ├── LICENSE
+  └── .gitignore
+
+
+────────────────────────────────────────────────────────────────────────────────
+3.  DATABASE SCHEMA (PostgreSQL)
+────────────────────────────────────────────────────────────────────────────────
+
+─── 3a. Users ──────────────────────────────────────────────────────────────────
+
+  TABLE users
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ email            │ VARCHAR(255) UNIQUE NOT NULL│                             │
+  │ password_hash    │ VARCHAR(255) NOT NULL       │ Werkzeug generated          │
+  │ display_name     │ VARCHAR(100)                │                             │
+  │ tier             │ VARCHAR(20) DEFAULT 'core'  │ 'core' | 'pro' | 'admin'   │
+  │ is_active        │ BOOLEAN DEFAULT TRUE        │                             │
+  │ onboarding_complete │ BOOLEAN DEFAULT FALSE    │ Used by future onboarding   │
+  │ avatar_url      │ VARCHAR(500)                │ FUTURE                      │
+  │ created_at       │ TIMESTAMP WITH TZ           │ DEFAULT NOW()               │
+  │ updated_at       │ TIMESTAMP WITH TZ           │ AUTO-UPDATE                 │
+  │ last_login_at    │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+  Relationships: progress (→ UserProgress), ai_interactions (→ AiInteraction)
+
+─── 3b. Sessions (audit trail) ─────────────────────────────────────────────────
+
+  TABLE sessions
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ user_id          │ UUID (FK → users.id)       │ ON DELETE CASCADE           │
+  │ token            │ VARCHAR(255) UNIQUE         │ Session token               │
+  │ ip_address       │ VARCHAR(45)                 │                             │
+  │ user_agent       │ TEXT                        │                             │
+  │ expires_at       │ TIMESTAMP WITH TZ           │                             │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+─── 3c. Modules (curriculum grouping) ──────────────────────────────────────────
+
+  TABLE modules
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ title            │ VARCHAR(200) NOT NULL       │                             │
+  │ slug             │ VARCHAR(200) UNIQUE NOT NULL│ e.g. "what-is-the-market"   │
+  │ description      │ TEXT                        │                             │
+  │ icon             │ VARCHAR(50)                 │ SVG icon name               │
+  │ sort_order       │ INTEGER DEFAULT 0           │ Display order               │
+  │ is_published     │ BOOLEAN DEFAULT FALSE       │                             │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  │ updated_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+  Relationships: lessons (→ Lesson, cascade delete)
+
+─── 3d. Lessons ────────────────────────────────────────────────────────────────
+
+  TABLE lessons
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ module_id        │ UUID (FK → modules.id)     │ ON DELETE CASCADE           │
+  │ title            │ VARCHAR(200) NOT NULL       │                             │
+  │ slug             │ VARCHAR(200) NOT NULL       │ Unique per module           │
+  │ content          │ TEXT                        │ HTML content                │
+  │ content_type     │ VARCHAR(20) DEFAULT 'html'  │ 'html' | 'markdown'        │
+  │ sort_order       │ INTEGER DEFAULT 0           │                             │
+  │ estimated_minutes│ INTEGER DEFAULT 5           │                             │
+  │ is_published     │ BOOLEAN DEFAULT FALSE       │                             │
+  │ concept_tags     │ TEXT[]                      │ Array e.g. {"liquidity"}    │
+  │ related_signal_type│ VARCHAR(50)               │ Links to bot signal type    │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  │ updated_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+  UNIQUE(module_id, slug)
+
+─── 3e. User Progress ─────────────────────────────────────────────────────────
+
+  TABLE user_progress
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ user_id          │ UUID (FK → users.id)       │ ON DELETE CASCADE           │
+  │ lesson_id        │ UUID (FK → lessons.id)     │ ON DELETE CASCADE           │
+  │ status           │ VARCHAR(20) DEFAULT 'not_started'│ 'not_started'          │
+  │                  │                            │ 'in_progress' | 'completed' │
+  │ score            │ INTEGER                     │ FUTURE: quiz score          │
+  │ completed_at     │ TIMESTAMP WITH TZ           │                             │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  │ updated_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+  UNIQUE(user_id, lesson_id)
+
+─── 3f. Bot Events ─────────────────────────────────────────────────────────────
+
+  TABLE bot_events
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ BIGSERIAL (PK)             │ Auto-increment (log-style)  │
+  │ timestamp        │ TIMESTAMP WITH TZ           │ ET timezone stored          │
+  │ event            │ VARCHAR(50) NOT NULL        │ 'scan' | 'entry' | 'exit'  │
+  │ symbol           │ VARCHAR(10)                 │                             │
+  │ side             │ VARCHAR(10)                 │ 'long' | 'short' | 'none'  │
+  │ price            │ DOUBLE PRECISION            │                             │
+  │ qty              │ INTEGER                     │                             │
+  │ status           │ VARCHAR(30)                 │ 'filled' | 'closed' | etc. │
+  │ message          │ TEXT                        │ Free-form context           │
+  │ created_at       │ TIMESTAMP WITH TZ           │ DEFAULT NOW()               │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+  INDEX idx_bot_events_event_ts ON bot_events(event, timestamp)
+
+─── 3g. Waitlist Entries ───────────────────────────────────────────────────────
+
+  TABLE waitlist_entries
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ email            │ VARCHAR(255) UNIQUE NOT NULL│                             │
+  │ source           │ VARCHAR(50) DEFAULT 'landing'│                            │
+  │ converted        │ BOOLEAN DEFAULT FALSE       │ Later became a user?        │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+─── 3h. AI Interactions (Groq query log) ──────────────────────────────────────
+
+  TABLE ai_interactions
+  ┌──────────────────┬────────────────────────────┬──────────────────────────────┐
+  │ Column           │ Type                       │ Notes                       │
+  ├──────────────────┼────────────────────────────┼──────────────────────────────┤
+  │ id               │ UUID (PK)                  │                             │
+  │ user_id          │ UUID (FK → users.id)       │ NULLABLE                    │
+  │ message          │ TEXT NOT NULL               │ User's prompt               │
+  │ response         │ TEXT NOT NULL               │ AI's reply                  │
+  │ tokens_used      │ INTEGER DEFAULT 0           │                             │
+  │ model_name       │ VARCHAR(100)                │ e.g. 'llama3-70b-8192'     │
+  │ tier             │ VARCHAR(20)                 │ 'core' | 'pro'             │
+  │ created_at       │ TIMESTAMP WITH TZ           │                             │
+  └──────────────────┴────────────────────────────┴──────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+4.  ROUTE MAP (Flask Blueprints)
+────────────────────────────────────────────────────────────────────────────────
+
+─── 4a. Public Routes (no auth required) ───────────────────────────────────────
+
+  METHOD  PATH                    BLUEPRINT    HANDLER               NOTES
+  ──────  ──────────────────────  ───────────  ────────────────────  ──────────
+  GET     /                       public       landing               Full landing page
+  GET     /pricing                public       pricing               Pricing tiers
+  POST    /waitlist               public       waitlist              JSON: { "email": "..." }
+
+  GET     /auth/login             auth         login                 Login form
+  POST    /auth/login             auth         login                 Authenticate + rate limited
+  GET     /auth/signup            auth         signup                Signup form
+  POST    /auth/signup            auth         signup                Create user + rate limited
+  GET     /auth/logout            auth         logout                Clear session
+
+─── 4b. Authenticated Routes (login required) ──────────────────────────────────
+
+  METHOD  PATH                    BLUEPRINT    HANDLER               NOTES
+  ──────  ──────────────────────  ───────────  ────────────────────  ──────────
+  GET     /workspace/             workspace    shell                 3-column terminal
+  GET     /workspace/api/modules  workspace    api_modules           Module list with progress
+  GET     /workspace/api/modules/<slug>        api_module_detail     Module with lesson list
+  GET     /workspace/api/lessons/<ms>/<ls>     api_lesson_detail     Lesson content + prev/next
+  POST    /workspace/api/lessons/<ms>/<ls>/complete  api_mark_complete  Mark lesson done
+
+─── 4c. API Routes (JSON responses) ────────────────────────────────────────────
+
+  METHOD  PATH                    BLUEPRINT    HANDLER               NOTES
+  ──────  ──────────────────────  ───────────  ────────────────────  ──────────
+  GET     /api/summary            api          summary               Bot status, events, positions
+  GET     /api/activity           api          activity              Last 60min event counts
+  GET     /api/symbol/<symbol>    api          symbol_detail         Per-symbol detail
+  GET     /api/footer             api          footer                Recent errors, skips, counts
+  GET     /api/signals/live       api          live_signals          Recent signals with explanations
+  POST    /api/ai/ask             api          ai_ask                Groq AI query (rate limited)
+  GET     /api/admin/ai/usage     api          admin_ai_usage        Today's AI query count
+
+─── 4d. Admin Routes ───────────────────────────────────────────────────────────
+
+  METHOD  PATH                    BLUEPRINT    HANDLER               NOTES
+  ──────  ──────────────────────  ───────────  ────────────────────  ──────────
+  GET     /admin/                 admin        shell                 Admin panel (403 if not admin)
+  GET     /admin/api/usage        admin        api_usage             AI query stats (today, top users, 7d trend)
+  GET     /admin/api/users        admin        api_users             All users (?q= filter)
+  GET     /admin/api/users/<id>   admin        api_user_detail       User + AI interactions
+  POST    /admin/api/users/<id>/tier  admin     api_user_tier        Change tier (core/pro/admin)
+  GET     /admin/api/system       admin        api_system            DB row counts
+  GET     /admin/api/bot/health   admin        api_bot_health        Bot status + events + log tail
+
+
+────────────────────────────────────────────────────────────────────────────────
+5.  FRONTEND: WORKSPACE TERMINAL MULTIPLEXER
+────────────────────────────────────────────────────────────────────────────────
+
+  The primary authenticated UX is a 3-column terminal multiplexer at /workspace.
+  No JS framework. Vanilla JS + Jinja2.
+
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  workspace/shell.html (extends base)                                        │
+  │  ────────────────────────────                                               │
+  │  ┌─ Status bar (28px) ──────────────────────────────────────────────────┐  │
+  │  │ delta-one | workspace | username                   admin | logout     │  │
+  │  └───────────────────────────────────────────────────────────────────────┘  │
+  │                                                                             │
+  │  ┌─ 220px ─┬─────────── 1fr ───────────┬── 280px ───────────────────────┐  │
+  │  │ NAV     │ CONTENT PANEL             │ RIGHT COLUMN                    │  │
+  │  │         │                           │                                 │  │
+  │  │ [Dash]  │ Renders inline:           │ Signals feed (15s auto-poll)    │  │
+  │  │ [Less]  │  • Dashboard summary      │ ┌─ signal ──────────────────┐  │  │
+  │  │ [Maps]  │  • Module/lesson list     │ │ event sym desc            │  │  │
+  │  │         │  • Lesson content viewer  │ └───────────────────────────┘  │  │
+  │  │ Concept │  • Concept detail         │                                 │  │
+  │  │ Tree    │                           │ Notes textarea                 │  │
+  │  │ ──────  │ AI TERMINAL (160-200px)   │ ┌─────────────────────────────┐│  │
+  │  │ M0      │ ┌──────────────────────┐  │ │ jot down thoughts...       ││  │
+  │  │ M1      │ │ > explain gamma      │  │ └─────────────────────────────┘│  │
+  │  │ M2      │ │ Γ measures rate of   │  │                                 │  │
+  │  │ M3      │ │ change of delta...   │  │                                 │  │
+  │  │ M4      │ └──────────────────────┘  │                                 │  │
+  │  └─────────┴───────────────────────────┴─────────────────────────────────┘  │
+  │                                                                             │
+  │  JS: workspace.js handles: showView(), concept tree collapse/expand,       │
+  │      inline lesson rendering via API calls, 15s signal polling,            │
+  │      notes localStorage save/restore, AI copilot terminal,                 │
+  │      ?focus= query param on boot, wsGoToLesson() helper                    │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  Unauthenticated pages:                                                     │
+  │                                                                             │
+  │  Landing page (/) — Hero, ticker, stats, features, pricing, waitlist CTA   │
+  │  Pricing (/pricing) — Static pricing for Core/Pro                          │
+  │  Login (/auth/login) — Email + password form                               │
+  │  Signup (/auth/signup) — Email + password + confirm                         │
+  │                                                                             │
+  │  All extend base.html, which pulls in components/nav.html                  │
+  │  (Pricing | Login | Sign Up — anonymous-only, workspace hides this nav)     │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  Admin panel (/admin) — 3-column terminal layout, same aesthetic            │
+  │                                                                             │
+  │  Left nav: Usage | Users | System | Bot Health                              │
+  │  Center: Content pane + AI usage context                                    │
+  │  Right: Quick stats (total users, AI today, events, bot status dot)         │
+  │                                                                             │
+  │  JS: admin.js handles view switching, data rendering for all 4 tools,      │
+  │      15s quick-stats polling                                                │
+  └─────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────
+6.  CURRENT BUILD STATUS
+────────────────────────────────────────────────────────────────────────────────
+
+  PHASE  ┆  NAME                 ┆  STATUS    ┆  NOTES
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   0     ┆  Foundation           ┆  COMPLETE  ┆  DB, app factory, models, migrations,
+         ┆                       ┆            ┆  blueprints, base template, sweep_csv DB write
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   1     ┆  Auth + Landing       ┆  COMPLETE  ┆  Signup/login/logout, landing page,
+         ┆                       ┆            ┆  pricing, waitlist, rate limiting
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   2     ┆  API Migration        ┆  COMPLETE  ┆  4 dashboard endpoints ported,
+         ┆                       ┆            ┆  DB-backed (no CSV), old dashboard_app.py
+         ┆                       ┆            ┆  and templates deleted
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   3     ┆  Curriculum           ┆  COMPLETE  ┆  Seed data (5 modules, 19 lessons),
+         ┆                       ┆            ┆  CurriculumService, lesson viewer,
+         ┆                       ┆            ┆  progress tracking
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   4     ┆  Signal Explorer      ┆  COMPLETE  ┆  SignalExplainerService (7 event types),
+         ┆                       ┆            ┆  /api/signals/live endpoint,
+         ┆                       ┆            ┆  inline signals feed in workspace
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   5a    ┆  Learning Terminal    ┆  SUPERSEDED ┆ vis-network concept map (deleted),
+         ┆  (original)           ┆            ┆  /api/concepts endpoint survived
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   5b    ┆  Workspace Shell      ┆  SUPERSEDED ┆ 5 draggable panes (replaced by 5d),
+         ┆  (iter. 1)            ┆            ┆  drag system, localStorage persistence
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   5c    ┆  Workspace Primary    ┆  SUPERSEDED ┆ Workspace becomes primary UX,
+         ┆  UX (iter. 2)         ┆            ┆  legacy routes redirect with ?focus=
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   5d    ┆  3-Column Terminal    ┆  COMPLETE  ┆  Current implementation:
+         ┆  Multiplexer          ┆            ┆  • 3-column CSS grid layout
+         ┆                       ┆            ┆  • Nav buttons + collapsible concept tree
+         ┆                       ┆            ┆  • Inline lesson/module rendering
+         ┆                       ┆            ┆  • AI copilot terminal (keyword)
+         ┆                       ┆            ┆  • Signals feed + notes
+         ┆                       ┆            ┆  • ?focus= query param
+         ┆                       ┆            ┆  • All legacy routes/templates deleted
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   6     ┆  AI + Admin Panel     ┆  COMPLETE  ┆  Groq AI integration replaces keyword
+         ┆                       ┆            ┆  copilot. Admin panel with Usage, Users,
+         ┆                       ┆            ┆  System, Bot Health tools. dashboard_app.py
+         ┆                       ┆            ┆  and dashboard.html permanently deleted.
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   7     ┆  Monetization         ┆  NOT STARTED┆ Stripe, tier gating, Pro feature lock
+  ───────┼───────────────────────┼────────────┼─────────────────────────────────
+   8     ┆  Launch & Polish      ┆  NOT STARTED┆ Stress testing, onboarding flow,
+         ┆                       ┆            ┆  admin panel polish, docs
+
+
+────────────────────────────────────────────────────────────────────────────────
+7.  FUTURE CONSIDERATIONS
+────────────────────────────────────────────────────────────────────────────────
+
+─── Onboarding Flow (Phase 8) ─────────────────────────────────────────────────
+
+  • First-time user flow:
+      1. Sign up → land on /workspace with onboarding overlay
+      2. Step 1: "Welcome to Delta Core" — brief explainer + CTA
+      3. Step 2: Concept tree → "Start with Module 0"
+      4. Step 3: Complete first lesson → notification
+      5. Step 4: "Want to see what the bot is detecting?" → signals view
+
+  • Use existing user.onboarding_complete BOOLEAN
+  • Until True, show onboarding steps
+
+─── Pro Tier Gating (Phase 7) ─────────────────────────────────────────────────
+
+  • Protected content checks user.tier
+  • Templates use: {% if current_user.tier == 'pro' %}
+  • API routes use: @tier_required('pro') decorator
+  • Stripe webhook updates user.tier on payment success
+
+─── AI Model Flexibility ──────────────────────────────────────────────────────
+
+  • AiService is designed to be swappable (Groq → other provider)
+  • Current model: llama3-70b-8192 via Groq
+  • Free tier: 20 queries/day (AI_DAILY_LIMIT_FREE)
+  • Pro tier: unlimited (AI_DAILY_LIMIT_PRO = -1)
+  • System prompt enforces: "Never give trading advice. Explain concepts."
+
+─── Notes System ──────────────────────────────────────────────────────────────
+
+  • UserNote model definition exists in architecture (app/models/note.py deleted for now)
+  • Notes textarea in workspace right column saves to localStorage (not server)
+  • Future: server-side CRUD, lesson-linked notes

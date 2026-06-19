@@ -1,0 +1,253 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         DELTA ONE — DEVELOPMENT LOG                        ║
+║                   Plain English changelog of what's been built,             ║
+║                   what's in progress, and what's coming next.              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+────────────────────────────────────────────────────────────────────────────────
+OVERVIEW
+────────────────────────────────────────────────────────────────────────────────
+
+Delta One is a trading education platform. It combines a live 4-hour sweep
+trading bot with interactive lessons, signal explanations, an AI teaching
+assistant, and an admin dashboard — all inside a terminal-themed workspace.
+
+This log tracks every major change, from the initial groundwork to the current
+state and future plans. It's written in plain English so anyone can follow
+the project's evolution.
+
+
+────────────────────────────────────────────────────────────────────────────────
+WHAT'S COMPLETE
+────────────────────────────────────────────────────────────────────────────────
+
+─── Foundation Phase ──────────────────────────────────────────────────────────
+
+Set up the core infrastructure: a PostgreSQL database to store everything
+(users, lessons, bot events), a Flask application skeleton, and all the
+building blocks that everything else rests on.
+
+    • Database set up locally with all the tables we need
+    • Flask app wired together with a factory pattern so it boots cleanly
+    • All database models created — users, lessons, progress, bot events,
+      AI interactions, waitlist signups, and session tracking
+    • Blueprint system in place so routes are organized by feature area
+    • Base page template with navigation that adapts whether you're logged in
+      or not
+    • 404 and 500 error pages
+    • The trading bot's CSV logger was updated to also write events to the
+      database, bridging the standalone bot and the web app
+
+─── Auth + Landing Page ──────────────────────────────────────────────────────
+
+Built the signup and login system. Users can create accounts, log in, log out,
+and land on a proper marketing page.
+
+    • Signup form that validates emails, checks for duplicates, and hashes
+      passwords
+    • Login form that authenticates against the database
+    • Logout clears the session
+    • Landing page (the one at the root URL) was migrated from a static HTML
+      file into the Flask app so it can show dynamic content later
+    • Pricing page with the Core (free) and Pro ($20/month) tiers
+    • Navigation bar switches between marketing links and app links depending
+      on whether you're logged in
+
+─── Dashboard + API Migration ────────────────────────────────────────────────
+
+Moved the bot monitoring dashboard from the old standalone script into the
+Flask app proper. All the data that used to come from a CSV file now comes
+from the database.
+
+    • Four API endpoints ported: summary, activity feed, per-symbol detail,
+      and footer stats
+    • The old dashboard_app.py script was deleted — everything runs through
+      Flask now
+    • The old dashboard HTML template was deleted too
+
+─── Curriculum Framework ─────────────────────────────────────────────────────
+
+Built the lesson system. Users can browse modules, read lessons, and track
+their progress.
+
+    • Seeded the database with 3 modules and 3 lessons each:
+        - Module 1: Market Structure Basics
+        - Module 2: Liquidity Concepts
+        - Module 3: The Sweep Strategy
+    • Curriculum service handles loading modules, lessons, and progress
+    • Only published lessons show up — unpublished content stays hidden
+    • Users can mark lessons complete and see a progress bar
+
+─── Signal Explorer ──────────────────────────────────────────────────────────
+
+Built the signal explanation system. Every bot event (entry, exit, scan, etc.)
+now has an educational explanation attached.
+
+    • Signal explainer service has hardcoded explanations for 7 event types
+    • Live signal feed endpoint serves recent events with explanations
+    • Signals link to related lessons where applicable
+
+─── Workspace — The Terminal Interface ───────────────────────────────────────
+
+This went through three iterations before landing on the current design. Here's
+the short version:
+
+    • First attempt: A concept map terminal with a vis-network graph showing
+      market concepts. Replaced.
+    • Second attempt: A draggable 5-pane workspace shell. Replaced.
+    • Current (third attempt): A fixed 3-column terminal multiplexer with a
+      Linux-terminal aesthetic. This is what users see today.
+
+The current workspace layout:
+
+    • Left column: Navigation buttons + collapsible concept tree (16 concepts
+      across 5 modules)
+    • Center column: Content panel + AI assistant terminal at the bottom
+    • Right column: Live signals feed + notes textarea
+    • Status bar across the top (replaces the traditional nav bar)
+
+All the old route files and templates from iterations 1 and 2 were deleted
+so nothing is left behind.
+
+─── AI Assistant (Groq) ──────────────────────────────────────────────────────
+
+Replaced the keyword-based AI responses with a real large language model
+from Groq (the "llama3-70b" model). The AI calls itself "Delta" and is
+instructed to explain concepts only — no trading advice.
+
+    • AI service uses the Groq API instead of a local Ollama setup
+    • Rate limits enforced: free users get a daily cap, Pro users get more
+    • Every AI interaction is recorded in the database for audit and usage
+      tracking
+    • If the API key is missing or the call fails, users see a friendly
+      "temporarily unavailable" message instead of a crash
+    • The workspace terminal now posts to the real AI endpoint instead of
+      matching keywords
+
+─── Admin Panel ──────────────────────────────────────────────────────────────
+
+Built an internal admin panel with the same terminal aesthetic. Four tools:
+
+    • Usage dashboard — shows AI query stats (total queries, tokens, trends)
+    • User management — list users, view details, change tiers
+    • System overview — database row counts for everything
+    • Bot Health — live bot status, equity, positions, event feed, and a
+      tail of the bot's log file
+
+The old standalone dashboard app that the bot used for monitoring is now
+fully replaced by the Bot Health tool.
+
+─── Security Hardening ───────────────────────────────────────────────────────
+
+A round of security and correctness fixes applied across the codebase:
+
+    • All API endpoints now require a logged-in user (no more open endpoints)
+    • In production mode, the app refuses to start unless SECRET_KEY is set
+      as an environment variable — no fallback defaults
+    • Emails are normalized to lowercase on both signup and login so there's
+      no confusion between "User@Example.com" and "user@example.com"
+    • User IDs in admin URLs are validated as proper UUIDs before hitting
+      the database — malformed IDs get a 404 instead of a server error
+    • The login redirect parameter (?next=) is validated as a relative URL
+      to prevent open redirect attacks
+    • Login timestamps are recorded for every successful login
+    • Timezone handling standardized to UTC internally
+    • Shared market constants and helpers (timezone, symbols, bot health
+      calculation) extracted into a single shared module to avoid duplication
+    • AI service failures are logged with full error details for debugging
+
+
+────────────────────────────────────────────────────────────────────────────────
+IN DEVELOPMENT
+────────────────────────────────────────────────────────────────────────────────
+
+─── Monetization (Phase 7) ───────────────────────────────────────────────────
+
+The plan is to handle payments through Stripe so users can upgrade from the
+free Core tier to the Pro tier. The Pro tier would unlock premium features
+like extended AI usage and advanced signal explanations.
+
+    • What exists: The pricing page, the tier field on user accounts, the
+      concept of gating features by tier
+    • What's missing: No Stripe integration, no payment flow, no webhook
+      listener, no subscription tracking. The tier service is still just a
+      placeholder with no real logic behind it.
+    • Key blocker: Need to set up Stripe products and prices, build the
+      checkout flow, write the webhook handler, and wire up the tier gating
+
+─── Launch Polish (Phase 8) ──────────────────────────────────────────────────
+
+The final phase before a public launch. Two big pieces:
+
+    • Onboarding flow: A guided tour for new users — welcome message, tour
+      the terminal, complete first lesson, see a live signal, done. The
+      onboarding service exists only as a placeholder.
+    • Automated tests: None exist yet. The plan is to write tests for auth,
+      models, routes, and the trading strategy.
+    • Production deployment: Not yet done. The app still runs on the Flask
+      dev server.
+
+
+────────────────────────────────────────────────────────────────────────────────
+COMING SOON
+────────────────────────────────────────────────────────────────────────────────
+
+─── Notes System ──────────────────────────────────────────────────────────────
+
+Lesson-attached notes with markdown support, so users can write and save their
+own notes alongside each lesson. The database model is reserved but not built.
+
+─── Theme Customization ──────────────────────────────────────────────────────
+
+Multiple VS Code-like themes (Monokai, Solarized, etc.) so users can customize
+the look of the terminal workspace. The database model is reserved but not
+built.
+
+─── Max Tier ──────────────────────────────────────────────────────────────────
+
+A higher subscription tier with broader market coverage, intraday signals,
+and extended history.
+
+─── Community Features ────────────────────────────────────────────────────────
+
+Public note sharing, lesson comments and discussions, concept map sharing.
+Further down the road.
+
+─── Mobile App ────────────────────────────────────────────────────────────────
+
+Mobile-optimized endpoints and potentially a native app. The REST API already
+exists — this would layer on mobile-specific features.
+
+
+────────────────────────────────────────────────────────────────────────────────
+2026-06-19 — Documentation Audit & Codebase Cleanup
+────────────────────────────────────────────────────────────────────────────────
+
+Brought all documentation in line with the actual codebase after Phases 0-6.
+The docs had fallen behind — they still referenced deleted files, legacy
+blueprints, placeholder stubs, and outdated architecture decisions.
+
+    • Cross-checked every file listed in docs/ against what's actually on disk
+    • Deleted 10 placeholder/future-stub files that were never implemented:
+      subscription.py, user_preference.py, note.py, lesson_forms.py,
+      webhooks.py, onboarding_service.py, tier_service.py, progress_bar.html,
+      and two .gitkeep files
+    • Uncommented CurriculumService, SignalExplainerService, and AiService
+      exports in services/__init__.py (they were implemented but marked FUTURE)
+    • Cleaned up models/__init__.py — removed commented-out references to
+      deleted stubs
+    • Rewrote docs/program-architecture.txt (v2.0) to reflect current 5-blueprint
+      layout, 8 live models, 4 services, 10 templates, 7 static files, Groq AI
+      backend, and workspace 3-column multiplexer
+    • Updated docs/implementation.txt — Phases 0-6 checklists all marked
+      complete, corrected stale references (5 blueprints not 7, 22 lessons
+      across 5 modules, not 3/3)
+    • Verified docs/curriculum.txt and DevLog.txt remain accurate
+    • Tested Flask app boots clean with all 18 routes, landing/auth/pricing
+      return 200, workspace/admin gate on auth, 404 pages work
+
+
+────────────────────────────────────────────────────────────────────────────────
+END OF DEVELOPMENT LOG
+────────────────────────────────────────────────────────────────────────────────

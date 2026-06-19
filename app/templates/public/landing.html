@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Delta One — Trading Intelligence Platform{% endblock %}
+
+{% block head %}
+  <meta name="description" content="Delta One brings institutional-grade market understanding to everyday traders. Learn why markets move, not just when to trade.">
+  <meta property="og:title" content="Delta One">
+  <meta property="og:description" content="Institutional-grade market understanding. Retail access.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+{% endblock %}
+
+{% block nav %}
+<header class="site-header" role="banner">
+  <nav class="nav container--wide" aria-label="Primary navigation">
+    <a href="#" class="nav-logo" aria-label="Delta One home">
+      <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:28px;width:auto">
+      <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:28px;width:auto">
+    </a>
+    <ul class="nav-links" role="list">
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <a href="{{ url_for('auth.signup') }}" class="btn-primary">Get started</a>
+    </div>
+  </nav>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-grid-bg" aria-hidden="true"></div>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="container hero-content">
+    <div class="hero-badge" role="status">Now building — join the waitlist</div>
+    <h1>Understand markets like the <em>institutions</em> do.</h1>
+    <p class="hero-sub">Delta One brings institutional-grade market understanding to everyday traders — at a price they can actually access. Learn why markets move, not just when to trade.</p>
+    <div class="hero-cta">
+      <a href="{{ url_for('auth.signup') }}" class="btn-primary-lg">Get early access</a>
+      <a href="#how" class="btn-outline-lg">See how it works</a>
+    </div>
+    <p class="hero-footnote">Free tier available &middot; No credit card required</p>
+  </div>
+</section>
+
+<div class="ticker-section" aria-label="Market ticker" aria-hidden="true">
+  <div class="ticker-track" id="ticker">
+    <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">$189.42</span><span class="ticker-change up">+1.24%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">$248.17</span><span class="ticker-change down">&minus;0.83%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">$872.90</span><span class="ticker-change up">+3.11%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">SPY</span><span class="ticker-price">$518.30</span><span class="ticker-change up">+0.47%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price">$415.60</span><span class="ticker-change up">+0.92%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price">$185.22</span><span class="ticker-change down">&minus;0.31%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price">$496.88</span><span class="ticker-change up">+1.67%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">QQQ</span><span class="ticker-price">$441.75</span><span class="ticker-change up">+0.59%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">$189.42</span><span class="ticker-change up">+1.24%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">$248.17</span><span class="ticker-change down">&minus;0.83%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">$872.90</span><span class="ticker-change up">+3.11%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">SPY</span><span class="ticker-price">$518.30</span><span class="ticker-change up">+0.47%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price">$415.60</span><span class="ticker-change up">+0.92%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price">$185.22</span><span class="ticker-change down">&minus;0.31%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price">$496.88</span><span class="ticker-change up">+1.67%</span></div>
+    <div class="ticker-item"><span class="ticker-symbol">QQQ</span><span class="ticker-price">$441.75</span><span class="ticker-change up">+0.59%</span></div>
+  </div>
+</div>
+
+<section class="stats-section" aria-label="Platform statistics">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">208</div>
+        <div class="stat-label">Trades logged</div>
+        <div class="stat-trend">Backtest data</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">49%</div>
+        <div class="stat-label">Win rate</div>
+        <div class="stat-trend">Optimized universe</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">1.37x</div>
+        <div class="stat-label">Profit factor</div>
+        <div class="stat-trend">Backtest verified</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">Free</div>
+        <div class="stat-label">To start</div>
+        <div class="stat-trend">No card needed</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how-section" id="how" aria-labelledby="how-title">
+  <div class="container">
+    <div class="section-label">Process</div>
+    <h2 class="section-title" id="how-title">Learn the why. <em>Trade with understanding.</em></h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">01</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3>Learn market structure</h3>
+        <p>Build foundational knowledge through structured lessons and applied market simulations using historical data. Practice without risk.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">02</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </div>
+        <h3>Understand why markets move</h3>
+        <p>Use the AI assistant to break down complex concepts and news context. Learn the causal relationships behind price action.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">03</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <h3>Apply with confidence</h3>
+        <p>Bring everything together in a synchronized workspace. Build your own understanding of markets and trade on your terms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features-section" id="features" aria-labelledby="features-title">
+  <div class="container">
+    <div class="section-label">Product</div>
+    <h2 class="section-title" id="features-title">Two tiers. <em>One mission: understanding.</em></h2>
+    <div class="steps-grid" style="margin-top:var(--space-12);">
+      <div class="step-card">
+        <div class="step-number">Delta Core</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3>Learning terminal — Free forever</h3>
+        <p>Build your market knowledge foundation with a structured learning environment designed for traders who want to understand, not just follow.</p>
+        <ul class="feature-list" style="margin-top:var(--space-2)">
+          <li>Modular lesson pathway with progressive difficulty</li>
+          <li>Applied market simulations using historical data</li>
+          <li>AI assistant that breaks concepts into smaller problems</li>
+          <li>Integrated notes system for tracking your learning</li>
+          <li>Basic market context from news and macro events</li>
+        </ul>
+      </div>
+      <div class="step-card">
+        <div class="step-number">Delta Pro</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <h3>Live terminal workspace — $20/month</h3>
+        <p>Everything in Core plus a professional multi-pane workspace for watching markets unfold in real time with educational context.</p>
+        <ul class="feature-list" style="margin-top:var(--space-2)">
+          <li>Multi-pane terminal workspace</li>
+          <li>Real-time charts via Alpaca market data API</li>
+          <li>News and sentiment feed with AI context</li>
+          <li>Macro event overlay (Fed, CPI, earnings)</li>
+          <li>Synchronized workspace for live macro events</li>
+          <li>AI explains market behavior — never directional calls</li>
+        </ul>
+      </div>
+      <div class="step-card">
+        <div class="step-number">Educational only</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+        <h3>No signals. No advice. Just understanding.</h3>
+        <p>Delta One is not a registered investment advisor. Nothing on the platform constitutes financial advice or trade recommendations. The AI explains market behavior in educational terms only.</p>
+        <ul class="feature-list" style="margin-top:var(--space-2)">
+          <li>No buy/sell/hold signals</li>
+          <li>No trade recommendations</li>
+          <li>No directional calls from AI</li>
+          <li>All content is educational</li>
+          <li>Signal engine is backend-only — never shown to users</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+  <div class="container">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title" id="pricing-title">Start free. <em>Scale when you're ready.</em></h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-tier">Delta Core</div>
+        <div class="pricing-price">
+          <span class="amount">$0</span>
+          <span class="period">/ month</span>
+        </div>
+        <p class="pricing-desc">Build your market knowledge foundation. Free, permanently.</p>
+        <ul class="pricing-features">
+          <li>Modular lesson pathway</li>
+          <li>Applied market simulations</li>
+          <li>AI learning assistant</li>
+          <li>Integrated notes system</li>
+          <li>Basic news &amp; macro context</li>
+          <li class="dim">Real-time charts</li>
+          <li class="dim">Live terminal workspace</li>
+        </ul>
+        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Get started free</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">For active learners</div>
+        <div class="pricing-tier">Delta Pro</div>
+        <div class="pricing-price">
+          <span class="amount">$20</span>
+          <span class="period">/ month</span>
+        </div>
+        <p class="pricing-desc">Everything in Core plus a live terminal workspace for real-time market understanding.</p>
+        <ul class="pricing-features">
+          <li>Everything in Delta Core</li>
+          <li>Live multi-pane terminal</li>
+          <li>Real-time charts via Alpaca</li>
+          <li>News &amp; sentiment with AI context</li>
+          <li>Macro event overlay</li>
+          <li>Synchronized event workspace</li>
+          <li>AI explains — never directs</li>
+        </ul>
+        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Join Pro waitlist</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="waitlist" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta-inner">
+      <div class="hero-badge">Limited early access spots</div>
+      <h2 id="cta-title">Be first in line when we launch.</h2>
+      <p>We're onboarding early users now. Drop your email and we'll reach out as soon as your spot opens.</p>
+      <form class="waitlist-form" id="waitlist-form" novalidate>
+        <label for="email-input" class="sr-only">Your email address</label>
+        <input type="email" id="email-input" class="waitlist-input" placeholder="you@email.com" required autocomplete="email">
+        <button type="submit" class="waitlist-submit">Join waitlist</button>
+      </form>
+      <p class="success-msg" id="success-msg" role="status">✓ You're on the list. We'll be in touch.</p>
+      <p class="cta-note">No spam. Unsubscribe anytime. We respect your inbox.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer" role="contentinfo">
+  <div class="container--wide">
+    <div class="footer-grid">
+      <div>
+        <a href="#" class="nav-logo" style="margin-bottom:var(--space-2)" aria-label="Delta One">
+          <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:24px;width:auto">
+          <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:24px;width:auto">
+        </a>
+        <p class="footer-copy">&copy; 2026 Delta One. All rights reserved.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer navigation">
+        <a href="#how">How it works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="https://www.linkedin.com/company/thedeltaone" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a href="https://instagram.com/thedeltaone" target="_blank" rel="noopener noreferrer">Instagram</a>
+      </nav>
+    </div>
+    <div class="footer-disclaimer">
+      <strong>Disclaimer:</strong> Delta One provides algorithmic signals for informational and educational purposes only. Nothing on this platform constitutes financial advice, investment recommendations, or solicitation to buy or sell securities. Past signal performance does not guarantee future results. Trading involves substantial risk of loss. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions.
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='landing.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Admin — Delta One{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
+{% endblock %}
+
+{% block nav %}
+<div class="ws-status-bar">
+  <div class="ws-status-left">
+    <span class="ws-logo">delta-one</span>
+    <span class="ws-sep">|</span>
+    <span class="ws-mode">admin</span>
+    <span class="ws-sep">|</span>
+    <span class="ws-user">{{ current_user.display_name or current_user.email }}</span>
+  </div>
+  <div class="ws-status-right">
+    <a href="{{ url_for('workspace.shell') }}" class="ws-btn" title="Back to workspace">← workspace</a>
+    <a href="{{ url_for('auth.logout') }}" class="ws-btn" title="Logout">logout</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ws-main" id="ws-main">
+
+  {# ─── Left column: admin nav ─── #}
+  <div class="ws-left">
+    <nav class="ws-nav">
+      <button class="ws-nav-item active" data-view="usage">Usage</button>
+      <button class="ws-nav-item" data-view="users">Users</button>
+      <button class="ws-nav-item" data-view="system">System</button>
+      <button class="ws-nav-item" data-view="bot">Bot Health</button>
+    </nav>
+
+    <div class="ws-tree-label">to do</div>
+    <div class="admin-todo" id="admin-todo">
+      <div class="admin-todo-input-row">
+        <input type="text" class="admin-todo-input" id="admin-todo-input" placeholder="add task..." spellcheck="false">
+      </div>
+      <div class="admin-todo-list" id="admin-todo-list"></div>
+    </div>
+  </div>
+
+  {# ─── Center column: content + terminal ─── #}
+  <div class="ws-center">
+    <div class="ws-content" id="ws-content">
+      <div class="ws-term-line ws-term-muted" style="padding:40px;text-align:center;">
+        Select a tool from the left panel.
+      </div>
+    </div>
+
+    <div class="ws-terminal">
+      <div class="ws-terminal-output" id="ws-terminal-output">
+        <div class="ws-term-line ws-term-muted">Admin Copilot — type a question or command</div>
+      </div>
+      <div class="ws-terminal-input-line">
+        <span class="ws-term-prompt">&gt;</span>
+        <input type="text" class="ws-terminal-input" id="ws-terminal-input" placeholder="type a command..." autofocus spellcheck="false" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  {# ─── Right column: system health + quick stats ─── #}
+  <div class="ws-right" id="ws-right-panel">
+    <div class="ws-right-section">
+      <div class="ws-right-title">system health</div>
+      <div id="admin-quick-stats" class="admin-stats-panel">
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Total Users</div>
+          <div class="admin-stat-value" id="qstat-users">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">AI Queries Today</div>
+          <div class="admin-stat-value" id="qstat-ai">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Waitlist</div>
+          <div class="admin-stat-value" id="qstat-waitlist">—</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-label">Events Today</div>
+          <div class="admin-stat-value" id="qstat-events">—</div>
+        </div>
+        <div class="admin-stat-card admin-stat-bot" id="qstat-bot">
+          <div class="admin-stat-label">Bot Status</div>
+          <div class="admin-stat-value"><span class="admin-health-dot" id="qstat-bot-dot"></span><span id="qstat-bot-text">checking...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='admin.js') }}"></script>
+{% endblock %}

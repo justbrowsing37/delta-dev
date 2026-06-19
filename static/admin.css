@@ -1,0 +1,425 @@
+/* ─── Admin styles — extends workspace terminal theme ── */
+
+/* ─── Right panel stat cards ─────────────── */
+.admin-stats-panel {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+}
+
+.admin-stat-label {
+  color: var(--ws-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.admin-stat-value {
+  color: var(--ws-text);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ─── Health dot ─────────────────────────── */
+.admin-health-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.admin-health-dot.healthy { background: var(--ws-success); }
+.admin-health-dot.warning { background: var(--ws-warning); }
+.admin-health-dot.critical { background: var(--ws-error); }
+
+/* ─── Content heading ────────────────────── */
+.admin-heading {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ws-border);
+}
+
+.admin-subheading {
+  font-size: 11px;
+  color: var(--ws-muted);
+  margin-bottom: 12px;
+}
+
+/* ─── Stat row (usage/system overview) ──── */
+.admin-stat-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-stat-box {
+  flex: 1;
+  min-width: 120px;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  padding: 10px 12px;
+}
+
+.admin-stat-box-label {
+  font-size: 10px;
+  color: var(--ws-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.admin-stat-box-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+
+/* ─── Table ──────────────────────────────── */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.admin-table th {
+  text-align: left;
+  color: var(--ws-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--ws-border);
+  font-weight: 600;
+}
+
+.admin-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--ws-border);
+  color: var(--ws-text);
+}
+
+.admin-table tr:hover td {
+  background: var(--ws-surface-2);
+}
+
+.admin-table .muted {
+  color: var(--ws-muted);
+}
+
+/* ─── Tier badge ─────────────────────────── */
+.admin-tier-badge {
+  font-size: 10px;
+  padding: 1px 7px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.admin-tier-core {
+  color: var(--ws-muted);
+  border: 1px solid var(--ws-border);
+}
+
+.admin-tier-pro {
+  color: var(--ws-accent);
+  border: 1px solid var(--ws-accent);
+}
+
+.admin-tier-admin {
+  color: var(--ws-warning);
+  border: 1px solid var(--ws-warning);
+}
+
+/* ─── Tier change button ─────────────────── */
+.admin-tier-btn {
+  background: none;
+  border: 1px solid var(--ws-border);
+  color: var(--ws-muted);
+  font-family: inherit;
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: color 150ms, border-color 150ms;
+}
+
+.admin-tier-btn:hover {
+  color: var(--ws-text);
+  border-color: var(--ws-muted);
+}
+
+/* ─── Bot health grid ────────────────────── */
+.admin-health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-health-card {
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  padding: 10px 12px;
+}
+
+.admin-health-card.full {
+  grid-column: 1 / -1;
+}
+
+.admin-health-card-label {
+  font-size: 10px;
+  color: var(--ws-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.admin-health-card-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ws-text);
+}
+
+.admin-health-card-value .admin-health-dot {
+  width: 10px;
+  height: 10px;
+}
+
+/* ─── Symbol status cards ────────────────── */
+.admin-sym-grid {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-sym-card {
+  flex: 1;
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  padding: 10px 14px;
+}
+
+.admin-sym-card-label {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.admin-sym-card-status {
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.admin-sym-card-detail {
+  font-size: 10px;
+  color: var(--ws-muted);
+}
+
+/* ─── Log viewer ─────────────────────────── */
+.admin-log-viewer {
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.admin-log-line {
+  padding: 1px 10px;
+  color: var(--ws-muted);
+  white-space: pre;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.admin-log-line:hover {
+  background: var(--ws-surface-2);
+}
+
+/* ─── Search input ───────────────────────── */
+.admin-search {
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border);
+  color: var(--ws-text);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 10px;
+  width: 250px;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.admin-search:focus {
+  border-color: var(--ws-muted);
+}
+
+/* ─── User detail panel ──────────────────── */
+.admin-user-detail {
+  border: 1px solid var(--ws-border);
+  background: var(--ws-surface);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.admin-user-detail h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.admin-user-detail .admin-stat-row {
+  margin-bottom: 8px;
+}
+
+/* ─── Trend table ────────────────────────── */
+.admin-trend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.admin-trend-table th {
+  text-align: left;
+  color: var(--ws-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ws-border);
+}
+
+.admin-trend-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--ws-border);
+  color: var(--ws-text);
+}
+
+/* ─── Todo list ──────────────────────────── */
+.admin-todo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-todo-input-row {
+  padding: 6px 10px 4px;
+}
+
+.admin-todo-input {
+  width: 100%;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border);
+  color: var(--ws-text);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.admin-todo-input:focus {
+  border-color: var(--ws-muted);
+}
+
+.admin-todo-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 0 8px;
+}
+
+.admin-todo-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.admin-todo-item:hover {
+  background: var(--ws-surface-2);
+}
+
+.admin-todo-check {
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--ws-muted);
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-todo-check.done {
+  background: var(--ws-accent);
+  border-color: var(--ws-accent);
+}
+
+.admin-todo-check.done::after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 7px;
+  border: solid var(--ws-bg);
+  border-width: 0 1px 1px 0;
+  transform: rotate(45deg) translateY(-1px);
+}
+
+.admin-todo-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ws-text);
+}
+
+.admin-todo-text.done {
+  color: var(--ws-muted);
+  text-decoration: line-through;
+}
+
+.admin-todo-del {
+  color: var(--ws-muted);
+  font-size: 12px;
+  padding: 0 2px;
+  opacity: 0;
+  transition: opacity 150ms;
+}
+
+.admin-todo-item:hover .admin-todo-del {
+  opacity: 1;
+}
+
+.admin-todo-del:hover {
+  color: var(--ws-error);
+}
+
+/* ─── Back button ────────────────────────── */
+.admin-back-btn {
+  background: none;
+  border: none;
+  color: var(--ws-muted);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 0;
+  cursor: pointer;
+  margin-bottom: 12px;
+  transition: color 150ms;
+}
+
+.admin-back-btn:hover {
+  color: var(--ws-text);
+}

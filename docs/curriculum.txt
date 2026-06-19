@@ -1,0 +1,91 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║              DELTA CORE — CURRICULUM ARCHITECTURE                            ║
+║              5 Modules · 22 Lessons · ~76 min total                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+The learning arc:
+
+  Module 0         Module 1         Module 2        Module 3        Module 4
+  What is          Reading          How Big         The Sweep       Reading
+  the Market? ──►  the Market ──►   Money Moves ──► Strategy   ──►  Signals
+  (Foundation)     (Charts)         (Institutional) (The Bot)       (Product)
+
+A user who completes all 5 modules goes from "what is a stock"
+to "I understand what Delta One detected and why it matters."
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 0 — What is the Market?
+────────────────────────────────────────────────────────────────────────────────
+  Foundation module. Complete beginner, no assumed knowledge.
+
+  Icon:  "bank"
+  Sort:   0
+
+  Lessons:
+    0.1  What is a stock?                   3 min
+    0.2  What does it mean to own a share?  3 min
+    0.3  How does a stock exchange work?    4 min
+    0.4  What moves a stock price?          4 min
+    0.5  Bulls, bears, and market sentiment 3 min
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 1 — Reading the Market
+────────────────────────────────────────────────────────────────────────────────
+  User can read a chart and understand what they're looking at.
+
+  Icon:  "chart"
+  Sort:   1
+
+  Lessons:
+    1.1  How to read a price chart         4 min
+    1.2  What is a trading range?          3 min
+    1.3  Support and resistance            3 min
+    1.4  Breakouts vs fakeouts             3 min
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 2 — How Big Money Moves
+────────────────────────────────────────────────────────────────────────────────
+  Bridges retail thinking → institutional thinking.
+
+  Icon:  "globe"
+  Sort:   2
+
+  Lessons:
+    2.1  Retail traders vs institutional traders   3 min
+    2.2  What is liquidity?                        3 min
+    2.3  Why stop hunts happen                     4 min
+    2.4  Liquidity sweeps explained                4 min
+    2.5  Reading the 4H range                      3 min
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 3 — The Sweep Strategy
+────────────────────────────────────────────────────────────────────────────────
+  User understands exactly what Delta One detects and why.
+
+  Icon:  "target"
+  Sort:   3
+
+  Lessons:
+    3.1  What Delta One looks for         4 min
+    3.2  Entry conditions                 4 min
+    3.3  Risk management                  4 min
+    3.4  When to flip direction           3 min
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 4 — Understanding the Signals
+────────────────────────────────────────────────────────────────────────────────
+  Connects the curriculum to the actual product.
+
+  Icon:  "signal"
+  Sort:   4
+
+  Lessons:
+    4.1  How to read a Delta One signal         4 min
+    4.2  What the signal is telling you          3 min
+    4.3  What the signal is NOT telling you      3 min
+    4.4  Paper trading a signal                  5 min

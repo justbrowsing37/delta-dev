@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Workspace — Delta One{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='workspace.css') }}">
+{% endblock %}
+
+{% block nav %}
+<div class="ws-status-bar">
+  <div class="ws-status-left">
+    <span class="ws-logo">delta-one</span>
+    <span class="ws-sep">|</span>
+    <span class="ws-mode">workspace</span>
+    <span class="ws-sep">|</span>
+    <span class="ws-user">{{ current_user.display_name or current_user.email }}</span>
+  </div>
+  <div class="ws-status-right">
+    {% if current_user.is_admin %}<a href="{{ url_for('admin.shell') }}" class="ws-btn" title="Admin panel">admin</a>{% endif %}
+    <a href="{{ url_for('auth.logout') }}" class="ws-btn" title="Logout">logout</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="ws-main" id="ws-main">
+
+  {# ─── Left column: explorer + concept tree ─── #}
+  <div class="ws-left">
+    <nav class="ws-nav">
+      <button class="ws-nav-item active" data-view="dashboard">Dashboard</button>
+      <button class="ws-nav-item" data-view="lessons">Lessons</button>
+      <button class="ws-nav-item" data-view="maps">Maps</button>
+
+    </nav>
+
+    <div class="ws-tree-label">concept map</div>
+    <div class="ws-concept-tree" id="ws-concept-tree">
+      <div class="ws-tree-group">
+        <div class="ws-tree-group-title" data-module="what-is-the-market">Module 0 — Foundations</div>
+        <div class="ws-tree-children">
+          <div class="ws-tree-node" data-concept="stock">Stock</div>
+          <div class="ws-tree-node" data-concept="exchange">Stock Exchange</div>
+          <div class="ws-tree-node" data-concept="price">Price Movement</div>
+        </div>
+      </div>
+      <div class="ws-tree-group">
+        <div class="ws-tree-group-title" data-module="reading-the-market">Module 1 — Reading the Market</div>
+        <div class="ws-tree-children">
+          <div class="ws-tree-node" data-concept="support_resistance">Support & Resistance</div>
+          <div class="ws-tree-node" data-concept="trading_range">Trading Range</div>
+          <div class="ws-tree-node" data-concept="breakout">Breakouts & Fakeouts</div>
+        </div>
+      </div>
+      <div class="ws-tree-group">
+        <div class="ws-tree-group-title" data-module="how-big-money-moves">Module 2 — How Big Money Moves</div>
+        <div class="ws-tree-children">
+          <div class="ws-tree-node" data-concept="institutional">Retail vs Institutions</div>
+          <div class="ws-tree-node" data-concept="liquidity">Liquidity</div>
+          <div class="ws-tree-node" data-concept="stop_hunt">Stop Hunts</div>
+          <div class="ws-tree-node" data-concept="sweep">Liquidity Sweep</div>
+        </div>
+      </div>
+      <div class="ws-tree-group">
+        <div class="ws-tree-group-title" data-module="the-sweep-strategy">Module 3 — The Sweep Strategy</div>
+        <div class="ws-tree-children">
+          <div class="ws-tree-node" data-concept="delta_scan">Delta One Scan</div>
+          <div class="ws-tree-node" data-concept="entry">Entry Conditions</div>
+          <div class="ws-tree-node" data-concept="risk">Risk Management</div>
+          <div class="ws-tree-node" data-concept="flip">Flip Direction</div>
+        </div>
+      </div>
+      <div class="ws-tree-group">
+        <div class="ws-tree-group-title" data-module="understanding-the-signals">Module 4 — Understanding the Signals</div>
+        <div class="ws-tree-children">
+          <div class="ws-tree-node" data-concept="read_signal">Reading Signals</div>
+          <div class="ws-tree-node" data-concept="paper_trade">Paper Trading</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ─── Center column: content + terminal ─── #}
+  <div class="ws-center">
+    <div class="ws-content" id="ws-content"></div>
+
+    <div class="ws-terminal">
+      <div class="ws-terminal-output" id="ws-terminal-output">
+        <div class="ws-term-line ws-term-muted">Delta One Copilot — type 'help' for commands</div>
+      </div>
+      <div class="ws-terminal-input-line">
+        <span class="ws-term-prompt">&gt;</span>
+        <input type="text" class="ws-terminal-input" id="ws-terminal-input" placeholder="type a command..." autofocus spellcheck="false" autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+  {# ─── Right column: signals + notes ─── #}
+  <div class="ws-right">
+    <div class="ws-right-section">
+      <div class="ws-right-title">signals</div>
+      <div class="ws-signals-feed" id="ws-signals-feed">
+        {% if signals %}
+        {% for s in signals %}
+        <div class="ws-signal-row">
+          <span class="ws-signal-event-badge event-{{ s.event }}">{{ s.event[:4] }}</span>
+          <span class="ws-signal-sym">{{ s.symbol or '--' }}</span>
+          <span class="ws-signal-desc">{{ s.summary }}</span>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="ws-empty muted">waiting for signals...</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="ws-right-section ws-right-notes">
+      <div class="ws-right-title">notes</div>
+      <textarea class="ws-notes-ta" id="ws-notes-ta" placeholder="jot down thoughts, observations, trade ideas..."></textarea>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='workspace.js') }}"></script>
+{% endblock %}

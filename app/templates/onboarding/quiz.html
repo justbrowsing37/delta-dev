@@ -53,10 +53,10 @@
       <div class="ob-q-num">{{ loop.index }} / {{ questions|length }}</div>
       <div class="ob-q-text">{{ q.question }}</div>
       <div class="ob-options">
-        {% for i, opt in q.options|enumerate %}
+        {% for opt in q.options %}
         <div class="ob-option" onclick="selectOption(this)">
-          <input type="radio" name="q{{ q.id }}" id="q{{ q.id }}_{{ i }}" value="{{ i }}" required>
-          <label for="q{{ q.id }}_{{ i }}">{{ opt }}</label>
+          <input type="radio" name="q{{ q.id }}" id="q{{ q.id }}_{{ loop.index0 }}" value="{{ loop.index0 }}" required>
+          <label for="q{{ q.id }}_{{ loop.index0 }}">{{ opt }}</label>
         </div>
         {% endfor %}
       </div>

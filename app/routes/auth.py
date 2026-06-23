@@ -2,7 +2,7 @@ import time
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 from collections import defaultdict
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.forms.auth_forms import LoginForm, SignupForm
 from app.services.auth_service import AuthService
@@ -37,7 +37,8 @@ def login():
         if error:
             flash(error, "error")
         else:
-            login_user(user)
+            # Never persist session beyond browser close
+            login_user(user, remember=False)
             user.last_login_at = datetime.now(timezone.utc)
             db.session.commit()
             next_url = request.args.get("next")
@@ -62,8 +63,7 @@ def signup():
         if error:
             flash(error, "error")
         else:
-            login_user(user)
-            # New users go through onboarding first
+            login_user(user, remember=False)
             if user.is_admin:
                 return redirect(url_for("admin.shell"))
             return redirect(url_for("onboarding.index"))
@@ -74,4 +74,6 @@ def signup():
 @login_required
 def logout():
     logout_user()
+    # Wipe entire session so back-button cannot restore it
+    session.clear()
     return redirect(url_for("public.landing"))

@@ -14,10 +14,21 @@
     <span class="ws-mode">workspace</span>
     <span class="ws-sep">|</span>
     <span class="ws-user">{{ current_user.display_name or current_user.email }}</span>
+    <span class="ws-sep">|</span>
+    {% if current_user.is_admin %}
+      <span class="ws-tier-badge ws-tier-admin">admin</span>
+    {% elif current_user.is_pro %}
+      <span class="ws-tier-badge ws-tier-pro">pro</span>
+    {% else %}
+      <span class="ws-tier-badge ws-tier-core">core</span>
+    {% endif %}
   </div>
   <div class="ws-status-right">
     {% if current_user.is_admin %}<a href="{{ url_for('admin.shell') }}" class="ws-btn" title="Admin panel">admin</a>{% endif %}
-    <a href="{{ url_for('auth.logout') }}" class="ws-btn" title="Logout">logout</a>
+    {% if not current_user.is_pro and not current_user.is_admin %}
+      <a href="{{ url_for('public.pricing') }}" class="ws-btn ws-btn-upgrade">upgrade</a>
+    {% endif %}
+    <a href="{{ url_for('auth.logout') }}" class="ws-btn ws-btn-logout" title="Logout">logout</a>
   </div>
 </div>
 {% endblock %}
@@ -28,10 +39,13 @@
   {# ─── Left column: explorer + concept tree ─── #}
   <div class="ws-left">
     <nav class="ws-nav">
-      <button class="ws-nav-item active" data-view="dashboard">Dashboard</button>
-      <button class="ws-nav-item" data-view="lessons">Lessons</button>
-      <button class="ws-nav-item" data-view="maps">Maps</button>
-
+      <button class="ws-nav-item active" data-view="dashboard">dashboard</button>
+      <button class="ws-nav-item" data-view="lessons">lessons</button>
+      <button class="ws-nav-item" data-view="maps">maps</button>
+      {% if current_user.is_pro or current_user.is_admin %}
+      <button class="ws-nav-item ws-nav-pro" data-view="charts">charts</button>
+      <button class="ws-nav-item ws-nav-pro" data-view="cases">case studies</button>
+      {% endif %}
     </nav>
 
     <div class="ws-tree-label">concept map</div>
@@ -82,11 +96,28 @@
 
   {# ─── Center column: content + terminal ─── #}
   <div class="ws-center">
+
+    {# Pro: TradingView chart panel #}
+    {% if current_user.is_pro or current_user.is_admin %}
+    <div class="ws-chart-panel" id="ws-chart-panel" style="display:none">
+      <div class="ws-chart-header">
+        <span class="ws-chart-title">live chart</span>
+        <input class="ws-chart-symbol" id="ws-chart-symbol" value="NASDAQ:AAPL" placeholder="NASDAQ:AAPL">
+        <button class="ws-btn" onclick="loadChart()">load</button>
+      </div>
+      <div id="tradingview-widget" style="height:420px;"></div>
+    </div>
+    {% endif %}
+
     <div class="ws-content" id="ws-content"></div>
 
     <div class="ws-terminal">
       <div class="ws-terminal-output" id="ws-terminal-output">
+        {% if current_user.is_pro or current_user.is_admin %}
+        <div class="ws-term-line ws-term-muted">Delta One Copilot [pro] — type 'help' for commands</div>
+        {% else %}
         <div class="ws-term-line ws-term-muted">Delta One Copilot — type 'help' for commands</div>
+        {% endif %}
       </div>
       <div class="ws-terminal-input-line">
         <span class="ws-term-prompt">&gt;</span>
@@ -98,7 +129,13 @@
   {# ─── Right column: signals + notes ─── #}
   <div class="ws-right">
     <div class="ws-right-section">
-      <div class="ws-right-title">signals</div>
+      <div class="ws-right-title">signals
+        {% if current_user.is_pro or current_user.is_admin %}
+        <span class="ws-pro-tag">90d</span>
+        {% else %}
+        <span class="ws-muted-tag">14d</span>
+        {% endif %}
+      </div>
       <div class="ws-signals-feed" id="ws-signals-feed">
         {% if signals %}
         {% for s in signals %}
@@ -117,6 +154,24 @@
       </div>
     </div>
 
+    {# Pro: BYO API key connector #}
+    {% if current_user.is_pro or current_user.is_admin %}
+    <div class="ws-right-section">
+      <div class="ws-right-title">ai connector</div>
+      <div class="ws-api-connector" id="ws-api-connector">
+        <select class="ws-api-select" id="ws-api-provider">
+          <option value="">-- select provider --</option>
+          <option value="openai">OpenAI (ChatGPT)</option>
+          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="groq">Groq</option>
+        </select>
+        <input type="password" class="ws-api-input" id="ws-api-key" placeholder="paste api key...">
+        <button class="ws-btn ws-btn-save" onclick="saveApiKey()">save key</button>
+        <div class="ws-api-status" id="ws-api-status"></div>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="ws-right-section ws-right-notes">
       <div class="ws-right-title">notes</div>
       <textarea class="ws-notes-ta" id="ws-notes-ta" placeholder="jot down thoughts, observations, trade ideas..."></textarea>
@@ -127,5 +182,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+  const USER_TIER = "{{ 'pro' if (current_user.is_pro or current_user.is_admin) else 'core' }}";
+</script>
 <script src="{{ url_for('static', filename='workspace.js') }}"></script>
 {% endblock %}

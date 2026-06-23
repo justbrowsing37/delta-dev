@@ -1,10 +1,23 @@
-<nav class="nav-bar">
+<nav class="nav-bar" role="navigation" aria-label="Site navigation">
   <div class="nav-inner">
-    <a href="{{ url_for('public.landing') }}" class="nav-logo">Delta One</a>
+    <a href="{{ url_for('public.landing') }}" class="nav-logo" aria-label="Delta One home">
+      <div class="nav-logo-mark" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <span class="nav-logo-text">Delta One</span>
+    </a>
     <div class="nav-links">
-      <a href="{{ url_for('public.pricing') }}">Pricing</a>
-      <a href="{{ url_for('auth.login') }}">Login</a>
-      <a href="{{ url_for('auth.signup') }}" class="nav-signup">Sign Up</a>
+      <a href="{{ url_for('public.pricing') }}">pricing</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('workspace.shell') }}">workspace</a>
+        {% if current_user.is_admin %}<a href="{{ url_for('admin.shell') }}">admin</a>{% endif %}
+        <a href="{{ url_for('auth.logout') }}" class="nav-logout">logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">login</a>
+        <a href="{{ url_for('auth.signup') }}" class="nav-signup">sign up</a>
+      {% endif %}
     </div>
   </div>
 </nav>

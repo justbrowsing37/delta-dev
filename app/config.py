@@ -18,11 +18,14 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
+    TEMPLATES_AUTO_RELOAD = True
 
 
 class ProductionConfig(Config):
     DEBUG = False
     SECRET_KEY = os.environ["SECRET_KEY"]
+    TEMPLATES_AUTO_RELOAD = True
+    SEND_FILE_MAX_AGE_DEFAULT = 0
 
 
 class TestingConfig(Config):

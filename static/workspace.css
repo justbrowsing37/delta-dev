@@ -25,7 +25,7 @@ main {
   min-height: 0;
 }
 
-/* ─── Status bar ────────────────────────────── */
+/* ─── Status bar ─────────────────────────── */
 .ws-status-bar {
   height: 28px;
   background: var(--ws-surface);
@@ -75,7 +75,7 @@ main {
   border-color: var(--ws-muted);
 }
 
-/* ─── Main 3-column grid ────────────────────── */
+/* ─── Main 3-column grid ──────────────────── */
 .ws-main {
   display: grid;
   grid-template-columns: 220px 1fr 280px;
@@ -83,7 +83,7 @@ main {
   overflow: hidden;
 }
 
-/* ─── Left column ───────────────────────────── */
+/* ─── Left column ────────────────────────── */
 .ws-left {
   border-right: 1px solid var(--ws-border);
   overflow-y: auto;
@@ -167,7 +167,7 @@ main {
   background: var(--ws-surface-2);
 }
 
-/* ─── Center column ─────────────────────────── */
+/* ─── Center column ──────────────────────── */
 .ws-center {
   display: flex;
   flex-direction: column;
@@ -368,7 +368,7 @@ main {
   margin-right: 4px;
 }
 
-/* ─── Inline lesson content ─────────────────── */
+/* ─── Inline lesson content ────────────────── */
 .ws-lesson-header {
   margin-bottom: 20px;
   padding-bottom: 14px;
@@ -499,7 +499,7 @@ main {
   cursor: default;
 }
 
-/* ─── Module list ───────────────────────────── */
+/* ─── Module list ────────────────────────── */
 .ws-module-list {
   display: flex;
   flex-direction: column;
@@ -590,7 +590,7 @@ main {
   color: var(--ws-text);
 }
 
-/* ─── Concept detail ────────────────────────── */
+/* ─── Concept detail ──────────────────────── */
 .ws-concept-detail h2 {
   font-size: 18px;
   font-weight: 700;
@@ -604,7 +604,7 @@ main {
   margin-bottom: 14px;
 }
 
-/* ─── Terminal ──────────────────────────────── */
+/* ─── Terminal ──────────────────────────── */
 .ws-terminal {
   min-height: 160px;
   max-height: 200px;
@@ -662,7 +662,7 @@ main {
   font-size: 12px;
 }
 
-/* ─── Right column ──────────────────────────── */
+/* ─── Right column ────────────────────────── */
 .ws-right {
   border-left: 1px solid var(--ws-border);
   overflow-y: auto;
@@ -718,13 +718,34 @@ main {
   flex-shrink: 0;
 }
 
-.event-scan { color: var(--ws-accent); }
+.event-scan    { color: var(--ws-accent); }
+.event-entry   { color: var(--ws-success); }
+.event-target  { color: var(--ws-success); }
+.event-stop    { color: var(--ws-error); }
 .event-position_opened { color: var(--ws-success); }
 .event-position { color: var(--ws-success); }
-.event-exit { color: var(--ws-muted); }
+.event-exit    { color: var(--ws-muted); }
 .event-order_submitted { color: var(--ws-warning); }
-.event-skip { color: var(--ws-error); }
-.event-error { color: var(--ws-error); font-weight: 700; }
+.event-skip    { color: var(--ws-error); }
+.event-error   { color: var(--ws-error); font-weight: 700; }
+
+/* ─── Historical signal badge ─────────────────── */
+.ws-signal-hist-badge {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #7a6a3a;
+  background: #2a2210;
+  border: 1px solid #4a3d1a;
+  border-radius: 3px;
+  padding: 1px 4px;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+.ws-signal-historical {
+  opacity: 0.75;
+}
 
 .ws-signal-sym {
   font-weight: 700;
@@ -753,7 +774,7 @@ main {
   color: var(--ws-muted);
 }
 
-/* ─── Notes textarea ────────────────────────── */
+/* ─── Notes textarea ───────────────────────── */
 .ws-notes-ta {
   flex: 1;
   min-height: 120px;
@@ -773,7 +794,7 @@ main {
   opacity: 0.4;
 }
 
-/* ─── Scrollbar ─────────────────────────────── */
+/* ─── Scrollbar ───────────────────────────── */
 .ws-left::-webkit-scrollbar,
 .ws-content::-webkit-scrollbar,
 .ws-terminal-output::-webkit-scrollbar,
@@ -798,7 +819,7 @@ main {
   background: var(--ws-border);
 }
 
-/* ─── Responsive ────────────────────────────── */
+/* ─── Responsive ──────────────────────────── */
 @media (max-width: 900px) {
   .ws-main {
     grid-template-columns: 1fr;

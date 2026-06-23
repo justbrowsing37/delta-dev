@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     display_name = db.Column(db.String(100))
     tier = db.Column(db.String(20), default="core")
+    is_active = db.Column(db.Boolean, default=True)
     onboarding_complete = db.Column(db.Boolean, default=False)
     skill_level = db.Column(db.String(20), default="beginner")
     avatar_url = db.Column(db.String(500))

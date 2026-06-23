@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Your Learning Path — Delta One{% endblock %}
+
+{% block head %}
+<style>
+  body { background: #0d0d0d; color: #e0e0e0; font-family: 'JetBrains Mono', 'Fira Mono', monospace; }
+  .ob-wrap { max-width: 600px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .ob-score { font-size: 3rem; color: #c8ff00; margin-bottom: 4px; }
+  .ob-label { font-size: 1.1rem; margin-bottom: 8px; }
+  .ob-msg { color: #888; font-size: 0.85rem; margin-bottom: 48px; line-height: 1.6; }
+  .ob-plan { text-align: left; background: #111; border: 1px solid #222; border-radius: 4px;
+    padding: 24px; margin-bottom: 40px; }
+  .ob-plan-title { color: #555; font-size: 0.75rem; margin-bottom: 16px; }
+  .ob-plan-item { display: flex; align-items: center; gap: 12px; padding: 8px 0;
+    border-bottom: 1px solid #1a1a1a; font-size: 0.85rem; }
+  .ob-plan-item:last-child { border-bottom: none; }
+  .ob-plan-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; flex-shrink: 0; }
+  .ob-plan-dot.active { background: #c8ff00; }
+  .ob-plan-item.active { color: #c8ff00; }
+  .ob-plan-item.muted { color: #444; }
+  .ob-btn { display: inline-block; background: #c8ff00; color: #0d0d0d; border: none;
+    padding: 14px 40px; font-family: inherit; font-size: 0.9rem; cursor: pointer;
+    border-radius: 2px; text-decoration: none; transition: background 0.15s; }
+  .ob-btn:hover { background: #d4ff33; }
+</style>
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="ob-wrap">
+  <div class="ob-score">{{ result.percentage }}%</div>
+  <div class="ob-label">{{ result.label }}</div>
+  <div class="ob-msg">{{ result.message }}</div>
+
+  <div class="ob-plan">
+    <div class="ob-plan-title">your learning path</div>
+    {% set modules = [
+      (1, "Module 1 — Foundations"),
+      (2, "Module 2 — Reading the Market"),
+      (3, "Module 3 — How Big Money Moves"),
+      (4, "Module 4 — The Sweep Strategy"),
+      (5, "Module 5 — Understanding Signals")
+    ] %}
+    {% for num, name in modules %}
+    <div class="ob-plan-item {% if num == result.starting_module %}active{% elif num < result.starting_module %}muted{% endif %}">
+      <div class="ob-plan-dot {% if num == result.starting_module %}active{% endif %}"></div>
+      {{ name }}
+      {% if num == result.starting_module %}<span style="color:#555;font-size:0.75rem;margin-left:auto">← start here</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" action="{{ url_for('onboarding.complete') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="ob-btn">enter workspace →</button>
+  </form>
+</div>
+{% endblock %}

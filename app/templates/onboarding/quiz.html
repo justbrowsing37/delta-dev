@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Skills Check — Delta One{% endblock %}
+
+{% block head %}
+<style>
+  body { background: #0d0d0d; color: #e0e0e0; font-family: 'JetBrains Mono', 'Fira Mono', monospace; }
+  .ob-wrap { max-width: 720px; margin: 60px auto; padding: 0 24px; }
+  .ob-header { margin-bottom: 40px; }
+  .ob-header h1 { font-size: 1.4rem; color: #c8ff00; margin: 0 0 8px; }
+  .ob-header p { color: #888; font-size: 0.85rem; margin: 0; }
+  .ob-progress { height: 2px; background: #1a1a1a; margin-bottom: 40px; }
+  .ob-progress-bar { height: 2px; background: #c8ff00; width: 0%; transition: width 0.3s; }
+  .ob-question { display: none; margin-bottom: 32px; }
+  .ob-question.active { display: block; }
+  .ob-q-text { font-size: 1rem; margin-bottom: 20px; line-height: 1.6; }
+  .ob-q-num { color: #555; font-size: 0.75rem; margin-bottom: 8px; }
+  .ob-options { display: flex; flex-direction: column; gap: 10px; }
+  .ob-option { display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    border: 1px solid #222; border-radius: 4px; cursor: pointer; transition: border-color 0.15s; }
+  .ob-option:hover { border-color: #c8ff00; }
+  .ob-option input[type=radio] { accent-color: #c8ff00; width: 16px; height: 16px; flex-shrink: 0; }
+  .ob-option label { cursor: pointer; font-size: 0.9rem; line-height: 1.4; }
+  .ob-option.selected { border-color: #c8ff00; background: #111; }
+  .ob-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
+  .ob-btn { background: none; border: 1px solid #333; color: #e0e0e0; padding: 10px 24px;
+    font-family: inherit; font-size: 0.85rem; cursor: pointer; border-radius: 2px; transition: all 0.15s; }
+  .ob-btn:hover { border-color: #c8ff00; color: #c8ff00; }
+  .ob-btn.primary { border-color: #c8ff00; color: #0d0d0d; background: #c8ff00; }
+  .ob-btn.primary:hover { background: #d4ff33; }
+  .ob-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .ob-counter { color: #555; font-size: 0.8rem; }
+</style>
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="ob-wrap">
+  <div class="ob-header">
+    <h1>delta-one / skills-check</h1>
+    <p>8 questions — we'll build your personalized learning path based on your answers.</p>
+  </div>
+
+  <div class="ob-progress">
+    <div class="ob-progress-bar" id="ob-progress-bar"></div>
+  </div>
+
+  <form method="POST" action="{{ url_for('onboarding.quiz_submit') }}" id="ob-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {% for q in questions %}
+    <div class="ob-question {% if loop.first %}active{% endif %}" id="question-{{ loop.index }}" data-index="{{ loop.index }}">
+      <div class="ob-q-num">{{ loop.index }} / {{ questions|length }}</div>
+      <div class="ob-q-text">{{ q.question }}</div>
+      <div class="ob-options">
+        {% for i, opt in q.options|enumerate %}
+        <div class="ob-option" onclick="selectOption(this)">
+          <input type="radio" name="q{{ q.id }}" id="q{{ q.id }}_{{ i }}" value="{{ i }}" required>
+          <label for="q{{ q.id }}_{{ i }}">{{ opt }}</label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="ob-nav">
+      <button type="button" class="ob-btn" id="btn-prev" onclick="prevQuestion()" disabled>← back</button>
+      <span class="ob-counter" id="ob-counter">1 / {{ questions|length }}</span>
+      <button type="button" class="ob-btn" id="btn-next" onclick="nextQuestion()">next →</button>
+      <button type="submit" class="ob-btn primary" id="btn-submit" style="display:none">see my results →</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const total = {{ questions|length }};
+  let current = 1;
+
+  function updateUI() {
+    document.querySelectorAll('.ob-question').forEach(q => q.classList.remove('active'));
+    document.getElementById('question-' + current).classList.add('active');
+    document.getElementById('ob-counter').textContent = current + ' / ' + total;
+    document.getElementById('ob-progress-bar').style.width = ((current / total) * 100) + '%';
+    document.getElementById('btn-prev').disabled = current === 1;
+    document.getElementById('btn-next').style.display = current === total ? 'none' : 'inline-block';
+    document.getElementById('btn-submit').style.display = current === total ? 'inline-block' : 'none';
+  }
+
+  function selectOption(el) {
+    const parent = el.closest('.ob-question');
+    parent.querySelectorAll('.ob-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    el.querySelector('input[type=radio]').checked = true;
+  }
+
+  function nextQuestion() {
+    const qEl = document.getElementById('question-' + current);
+    const checked = qEl.querySelector('input[type=radio]:checked');
+    if (!checked) { qEl.style.outline = '1px solid #ff4444'; setTimeout(() => qEl.style.outline = '', 600); return; }
+    if (current < total) { current++; updateUI(); }
+  }
+
+  function prevQuestion() {
+    if (current > 1) { current--; updateUI(); }
+  }
+
+  updateUI();
+</script>
+{% endblock %}

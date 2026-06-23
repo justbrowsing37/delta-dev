@@ -47,9 +47,9 @@
       <div class="ws-tree-group">
         <div class="ws-tree-group-title" data-module="reading-the-market">Module 1 — Reading the Market</div>
         <div class="ws-tree-children">
-          <div class="ws-tree-node" data-concept="support_resistance">Support & Resistance</div>
+          <div class="ws-tree-node" data-concept="support_resistance">Support &amp; Resistance</div>
           <div class="ws-tree-node" data-concept="trading_range">Trading Range</div>
-          <div class="ws-tree-node" data-concept="breakout">Breakouts & Fakeouts</div>
+          <div class="ws-tree-node" data-concept="breakout">Breakouts &amp; Fakeouts</div>
         </div>
       </div>
       <div class="ws-tree-group">
@@ -102,8 +102,11 @@
       <div class="ws-signals-feed" id="ws-signals-feed">
         {% if signals %}
         {% for s in signals %}
-        <div class="ws-signal-row">
+        <div class="ws-signal-row{% if '[source: historical]' in (s.message or '') %} ws-signal-historical{% endif %}">
           <span class="ws-signal-event-badge event-{{ s.event }}">{{ s.event[:4] }}</span>
+          {% if '[source: historical]' in (s.message or '') %}
+          <span class="ws-signal-hist-badge" title="Backtest trade — historical data">hist</span>
+          {% endif %}
           <span class="ws-signal-sym">{{ s.symbol or '--' }}</span>
           <span class="ws-signal-desc">{{ s.summary }}</span>
         </div>

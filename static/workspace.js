@@ -47,6 +47,11 @@
     lsSet('ws_focus_time', new Date().toISOString());
   }
 
+  // Returns true if message contains the historical source tag
+  function isHistorical(message) {
+    return typeof message === 'string' && message.indexOf('[source: historical]') !== -1;
+  }
+
   // ─── Nav ────────────────────────────────────
   document.querySelectorAll('.ws-nav-item').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -227,7 +232,6 @@
       var item = stripItems[i];
       var label = item.querySelector('.ws-status-label');
       if (label && label.textContent === 'lessons') {
-        var txt = item.textContent.replace(label.textContent, '').trim();
         item.innerHTML = '<span class="ws-status-label">lessons</span> ' + totalDone + '/' + totalLessons;
         break;
       }
@@ -390,7 +394,20 @@
       });
   };
 
-  // ─── Signals (right-rail only) ─────────────
+  // ─── Signals (right-rail) ──────────────────
+  function buildSignalRow(s) {
+    var historical = isHistorical(s.message);
+    var row = '<div class="ws-signal-row' + (historical ? ' ws-signal-historical' : '') + '">';
+    row += '<span class="ws-signal-event-badge event-' + (s.event || 'scan') + '">' + (s.event ? s.event.slice(0, 4) : 'scan') + '</span>';
+    if (historical) {
+      row += '<span class="ws-signal-hist-badge" title="Backtest trade — historical data">hist</span>';
+    }
+    row += '<span class="ws-signal-sym">' + (s.symbol || '--') + '</span>';
+    row += '<span class="ws-signal-desc">' + escapeHtml(s.summary || '') + '</span>';
+    row += '</div>';
+    return row;
+  }
+
   function pollSignals() {
     fetch('/api/signals/live')
       .then(function (r) { return r.json(); })
@@ -403,11 +420,7 @@
         }
         var html = '';
         rows.slice(0, 15).forEach(function (s) {
-          html += '<div class="ws-signal-row">';
-          html += '<span class="ws-signal-event-badge event-' + (s.event || 'scan') + '">' + (s.event ? s.event.slice(0, 4) : 'scan') + '</span>';
-          html += '<span class="ws-signal-sym">' + (s.symbol || '--') + '</span>';
-          html += '<span class="ws-signal-desc">' + (s.summary || '') + '</span>';
-          html += '</div>';
+          html += buildSignalRow(s);
         });
         signalsFeed.innerHTML = html;
         lsSet('ws_signal_count', String(rows.length));

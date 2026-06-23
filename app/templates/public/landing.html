@@ -1,280 +1,766 @@
-{% extends "base.html" %}
-
-{% block title %}Delta One — Learn Markets. Think for Yourself.{% endblock %}
-
-{% block head %}
-  <meta name="description" content="Delta One is a fintech education platform built for college students who are tired of market noise. Structured learning on top. An algo trading engine underneath.">
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delta One — Launching January 1</title>
+  <meta name="description" content="Delta One is a fintech education platform with an algo trading engine underneath. Learn markets. Trade with conviction. Launching January 1.">
   <meta property="og:title" content="Delta One">
-  <meta property="og:description" content="Build market structure from first principles. Understand why prices move — not just when.">
+  <meta property="og:description" content="Fintech education. Algo trading underneath. Launching January 1.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300..600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
-{% endblock %}
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+  <style>
+    /* =============================================
+       DELTA ONE — HERO SITE
+       Art direction: terminal-native fintech
+       Palette: near-black bg, #4ade80 signal-green accent
+       Typography: JetBrains Mono only — terminal IS the brand
+       Zero border-radius, 1px borders, dense/precise
+    ============================================= */
 
-{% block nav %}
-<header class="site-header" role="banner">
-  <nav class="nav container--wide" aria-label="Primary navigation">
+    :root {
+      --text-xs:   clamp(0.688rem, 0.65rem + 0.2vw, 0.75rem);
+      --text-sm:   clamp(0.75rem,  0.7rem  + 0.25vw, 0.875rem);
+      --text-base: clamp(0.875rem, 0.82rem + 0.28vw, 1rem);
+      --text-lg:   clamp(1rem,     0.9rem  + 0.5vw,  1.25rem);
+      --text-xl:   clamp(1.25rem,  1rem    + 1.25vw, 2rem);
+      --text-2xl:  clamp(1.75rem,  1rem    + 2.5vw,  3rem);
+      --text-3xl:  clamp(2.25rem,  0.8rem  + 4.5vw,  4.5rem);
+
+      --space-1:0.25rem; --space-2:0.5rem; --space-3:0.75rem; --space-4:1rem;
+      --space-5:1.25rem; --space-6:1.5rem; --space-8:2rem; --space-10:2.5rem;
+      --space-12:3rem; --space-16:4rem; --space-20:5rem; --space-24:6rem;
+
+      /* Delta One palette — exactly as specified */
+      --color-bg:       #0a0b0c;
+      --color-surface:  #0f1114;
+      --color-border:   #1a1d21;
+      --color-text:     #e8e8e8;
+      --color-muted:    #6b7280;
+      --color-accent:   #4ade80;
+      --color-accent-dim: #22c55e;
+      --color-accent-glow: rgba(74, 222, 128, 0.12);
+      --color-accent-glow-strong: rgba(74, 222, 128, 0.2);
+      --color-up:       #4ade80;
+      --color-down:     #f87171;
+
+      --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+
+      --radius: 0px; /* zero border-radius — deliberate */
+      --transition: 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      scroll-behavior: smooth;
+    }
+    body {
+      min-height: 100dvh;
+      font-family: var(--font-mono);
+      font-size: var(--text-base);
+      color: var(--color-text);
+      background: var(--color-bg);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    img { display: block; max-width: 100%; }
+    button { cursor: pointer; background: none; border: none; font: inherit; color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    :focus-visible { outline: 1px solid var(--color-accent); outline-offset: 2px; }
+    ::selection { background: var(--color-accent-glow-strong); color: var(--color-accent); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* ---- TICKER ---- */
+    .ticker-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      overflow: hidden;
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+    .ticker-track {
+      display: flex;
+      gap: 0;
+      white-space: nowrap;
+      animation: ticker-scroll 50s linear infinite;
+      will-change: transform;
+    }
+    .ticker-bar:hover .ticker-track { animation-play-state: paused; }
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .ticker-item {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0 var(--space-6);
+      font-size: var(--text-xs);
+      letter-spacing: 0.04em;
+      border-right: 1px solid var(--color-border);
+      height: 32px;
+    }
+    .t-sym { color: var(--color-text); font-weight: 700; }
+    .t-price { color: var(--color-muted); }
+    .t-chg { font-weight: 600; }
+    .t-chg.up  { color: var(--color-up); }
+    .t-chg.down{ color: var(--color-down); }
+
+    /* ---- NAV ---- */
+    .site-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-8);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text);
+    }
+    .logo-mark {
+      display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px;
+      border: 1px solid var(--color-accent);
+    }
+    .nav-status {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .status-dot {
+      width: 6px; height: 6px;
+      background: var(--color-accent);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+
+    /* ---- HERO ---- */
+    .hero {
+      min-height: calc(100dvh - 65px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-16) var(--space-8);
+      text-align: center;
+      position: relative;
+      border-bottom: 1px solid var(--color-border);
+    }
+    /* Subtle scanline texture */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(74,222,128,0.012) 3px,
+        rgba(74,222,128,0.012) 4px
+      );
+      pointer-events: none;
+    }
+    /* Accent glow halo behind headline */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(74,222,128,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 820px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-8);
+    }
+    .hero-label {
+      font-size: var(--text-xs);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      border: 1px solid var(--color-accent);
+      padding: var(--space-1) var(--space-4);
+      display: inline-block;
+    }
+    .hero h1 {
+      font-size: var(--text-3xl);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: var(--color-text);
+    }
+    .hero h1 .accent { color: var(--color-accent); }
+    .hero-sub {
+      font-size: var(--text-base);
+      color: var(--color-muted);
+      max-width: 520px;
+      line-height: 1.75;
+      font-weight: 300;
+    }
+    /* ---- WAITLIST FORM ---- */
+    .waitlist-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-3);
+      width: 100%;
+      max-width: 480px;
+    }
+    .waitlist-form {
+      display: flex;
+      width: 100%;
+      border: 1px solid var(--color-border);
+    }
+    .waitlist-form:focus-within { border-color: var(--color-accent); }
+    .waitlist-input {
+      flex: 1;
+      background: var(--color-surface);
+      border: none;
+      border-right: 1px solid var(--color-border);
+      padding: var(--space-3) var(--space-4);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      outline: none;
+      min-width: 0;
+    }
+    .waitlist-input::placeholder { color: var(--color-muted); }
+    .waitlist-submit {
+      background: var(--color-accent);
+      color: #0a0b0c;
+      padding: var(--space-3) var(--space-6);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background var(--transition);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .waitlist-submit:hover { background: var(--color-accent-dim); }
+    .waitlist-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .waitlist-note {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      letter-spacing: 0.04em;
+    }
+    .success-msg {
+      display: none;
+      font-size: var(--text-sm);
+      color: var(--color-accent);
+      letter-spacing: 0.04em;
+    }
+    .success-msg::before { content: '> '; }
+    .hero-countdown {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .hero-countdown span { color: var(--color-text); font-weight: 600; }
+
+    /* ---- STATS ---- */
+    .stats-section {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .stats-header {
+      padding: var(--space-6) var(--space-8);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .section-label {
+      font-size: var(--text-xs);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+    .section-label::before { content: '// '; color: var(--color-accent); }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .stat-block {
+      padding: var(--space-10) var(--space-8);
+      border-right: 1px solid var(--color-border);
+      position: relative;
+    }
+    .stat-block:last-child { border-right: none; }
+    .stat-block::before {
+      content: attr(data-index);
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-5);
+      font-size: var(--text-xs);
+      color: var(--color-border);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .stat-value {
+      font-size: clamp(2.5rem, 4vw, 4rem);
+      font-weight: 800;
+      color: var(--color-accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: var(--space-2);
+    }
+    .stat-label {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: var(--space-1);
+    }
+    .stat-desc {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* ---- WHAT YOU GET ---- */
+    .features-section {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .features-header {
+      padding: var(--space-6) var(--space-8);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .feature-col {
+      padding: var(--space-10) var(--space-8);
+    }
+    .feature-col:first-child {
+      border-right: 1px solid var(--color-border);
+    }
+    .feature-col-tag {
+      font-size: var(--text-xs);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: var(--space-4);
+    }
+    .feature-col h3 {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-3);
+      line-height: 1.3;
+    }
+    .feature-col .desc {
+      font-size: var(--text-sm);
+      color: var(--color-muted);
+      line-height: 1.75;
+      font-weight: 300;
+      margin-bottom: var(--space-6);
+    }
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--color-muted);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+    .feature-list li::before {
+      content: '→';
+      color: var(--color-accent);
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-weight: 700;
+    }
+
+    /* ---- FOOTER ---- */
+    .site-footer {
+      padding: var(--space-8);
+      border-top: 1px solid var(--color-border);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-6);
+      flex-wrap: wrap;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .footer-brand-name {
+      font-size: var(--text-sm);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .footer-launch {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      letter-spacing: 0.08em;
+    }
+    .footer-launch strong { color: var(--color-accent); }
+    .footer-socials {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+    }
+    .footer-socials a {
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color var(--transition);
+    }
+    .footer-socials a:hover { color: var(--color-accent); }
+    .footer-disclaimer {
+      margin-top: var(--space-6);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--color-border);
+      font-size: var(--text-xs);
+      color: var(--color-muted);
+      font-weight: 300;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    /* ---- SCROLL REVEAL ---- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+      .site-nav { padding: var(--space-4); }
+      .hero { padding: var(--space-12) var(--space-4); min-height: auto; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-block { border-right: none; border-bottom: 1px solid var(--color-border); }
+      .stat-block:last-child { border-bottom: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-col:first-child { border-right: none; border-bottom: 1px solid var(--color-border); }
+      .stats-header, .features-header { padding: var(--space-4); }
+      .stat-block, .feature-col { padding: var(--space-8) var(--space-4); }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .site-nav { flex-wrap: wrap; gap: var(--space-3); }
+    }
+    @media (max-width: 480px) {
+      .waitlist-form { flex-direction: column; }
+      .waitlist-input { border-right: none; border-bottom: 1px solid var(--color-border); }
+      .waitlist-submit { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== TICKER ===================== -->
+  <div class="ticker-bar" aria-label="Market prices" role="marquee">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- items injected by JS -->
+    </div>
+  </div>
+
+  <!-- ===================== NAV ===================== -->
+  <nav class="site-nav" role="navigation" aria-label="Site navigation">
     <a href="#" class="nav-logo" aria-label="Delta One home">
-      <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:28px;width:auto">
-      <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:28px;width:auto">
+      <div class="logo-mark" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      DELTA ONE
     </a>
-    <ul class="nav-links" role="list">
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-    </ul>
-    <div class="nav-right">
-      <button class="theme-toggle" data-theme-toggle aria-label="Switch to light mode">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-      <a href="{{ url_for('auth.signup') }}" class="btn-primary">Get started</a>
+    <div class="nav-status" role="status" aria-live="polite">
+      <div class="status-dot" aria-hidden="true"></div>
+      <span id="countdown-nav">Loading...</span>
     </div>
   </nav>
-</header>
-{% endblock %}
 
-{% block content %}
-<section class="hero">
-  <div class="hero-grid-bg" aria-hidden="true"></div>
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="container hero-content">
-    <div class="hero-badge" role="status">Built for college students tired of market noise</div>
-    <h1>Structured learning on top. <em>An algo engine underneath.</em></h1>
-    <p class="hero-sub">Build market structure from first principles. Understand why prices move — not just when. Structured curriculum designed for students who think, not followers who react.</p>
-    <div class="hero-cta">
-      <a href="{{ url_for('auth.signup') }}" class="btn-primary-lg">Get early access</a>
-      <a href="#how" class="btn-outline-lg">See how it works</a>
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-inner">
+      <div class="hero-label" role="note">Private Beta · Launching January 1</div>
+
+      <h1 id="hero-heading">
+        Learn markets.<br>
+        Trade with <span class="accent">conviction.</span>
+      </h1>
+
+      <p class="hero-sub">
+        Delta One is a fintech education platform built for college students who are tired of market noise. Structured learning on top. An algo trading engine underneath.
+      </p>
+
+      <div class="waitlist-wrap">
+        <form class="waitlist-form" id="waitlist-form" role="form" aria-label="Join the waitlist">
+          <label for="email-input" class="sr-only">Email address</label>
+          <input
+            type="email"
+            id="email-input"
+            class="waitlist-input"
+            placeholder="your@email.com"
+            autocomplete="email"
+            required
+            aria-required="true"
+          >
+          <button type="submit" class="waitlist-submit" aria-label="Join the waitlist">
+            JOIN WAITLIST
+          </button>
+        </form>
+        <div class="success-msg" id="success-msg" role="status" aria-live="polite">
+          you&apos;re on the list. see you january 1.
+        </div>
+        <p class="waitlist-note">// No spam. No credit card. Just early access.</p>
+      </div>
+
+      <div class="hero-countdown" aria-live="polite" id="countdown-hero">
+        <span id="days-value">—</span> days until launch
+      </div>
     </div>
-    <p class="hero-footnote">// No spam. No credit card. Just early access.</p>
-  </div>
-</section>
+  </section>
 
-<div class="ticker-section" aria-label="Market ticker" aria-hidden="true">
-  <div class="ticker-track" id="ticker">
-    <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">$189.42</span><span class="ticker-change up">+1.24%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">$248.17</span><span class="ticker-change down">&minus;0.83%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">$872.90</span><span class="ticker-change up">+3.11%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">SPY</span><span class="ticker-price">$518.30</span><span class="ticker-change up">+0.47%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price">$415.60</span><span class="ticker-change up">+0.92%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price">$185.22</span><span class="ticker-change down">&minus;0.31%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price">$496.88</span><span class="ticker-change up">+1.67%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">QQQ</span><span class="ticker-price">$441.75</span><span class="ticker-change up">+0.59%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">AAPL</span><span class="ticker-price">$189.42</span><span class="ticker-change up">+1.24%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">TSLA</span><span class="ticker-price">$248.17</span><span class="ticker-change down">&minus;0.83%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">NVDA</span><span class="ticker-price">$872.90</span><span class="ticker-change up">+3.11%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">SPY</span><span class="ticker-price">$518.30</span><span class="ticker-change up">+0.47%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">MSFT</span><span class="ticker-price">$415.60</span><span class="ticker-change up">+0.92%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">AMZN</span><span class="ticker-price">$185.22</span><span class="ticker-change down">&minus;0.31%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">META</span><span class="ticker-price">$496.88</span><span class="ticker-change up">+1.67%</span></div>
-    <div class="ticker-item"><span class="ticker-symbol">QQQ</span><span class="ticker-price">$441.75</span><span class="ticker-change up">+0.59%</span></div>
-  </div>
-</div>
-
-<section class="stats-section" aria-label="Platform statistics">
-  <div class="container">
+  <!-- ===================== STATS ===================== -->
+  <section class="stats-section" aria-labelledby="stats-title">
+    <div class="stats-header">
+      <div class="section-label" id="stats-title">backtest.results</div>
+    </div>
     <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-number">208</div>
-        <div class="stat-label">Trades logged</div>
-        <div class="stat-trend">Backtest data</div>
+      <div class="stat-block reveal" data-index="01">
+        <div class="stat-value">208</div>
+        <div class="stat-label">Trades Logged</div>
+        <div class="stat-desc">Full backtest run across optimized universe. Every signal captured.</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number">49%</div>
-        <div class="stat-label">Win rate</div>
-        <div class="stat-trend">Optimized universe</div>
+      <div class="stat-block reveal" data-index="02" style="transition-delay:0.1s">
+        <div class="stat-value">49%</div>
+        <div class="stat-label">Win Rate</div>
+        <div class="stat-desc">Profitable without needing to be right most of the time. Asymmetric edge.</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-number">1.37x</div>
-        <div class="stat-label">Profit factor</div>
-        <div class="stat-trend">Backtest verified</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">Free</div>
-        <div class="stat-label">To start</div>
-        <div class="stat-trend">No card needed</div>
+      <div class="stat-block reveal" data-index="03" style="transition-delay:0.2s">
+        <div class="stat-value">1.37×</div>
+        <div class="stat-label">Profit Factor</div>
+        <div class="stat-desc">Winners outpace losers. Verified across the full backtest dataset.</div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="how-section" id="how" aria-labelledby="how-title">
-  <div class="container">
-    <div class="section-label">Process</div>
-    <h2 class="section-title" id="how-title">Learn the why. <em>Trade with understanding.</em></h2>
-    <div class="steps-grid">
-      <div class="step-card">
-        <div class="step-number">01</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        </div>
-        <h3>Build from first principles</h3>
-        <p>Start with market structure — not tips. Structured lessons and applied simulations using real historical data. Practice without risk, understand without shortcuts.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-number">02</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        </div>
-        <h3>Understand why prices move</h3>
-        <p>Use the AI assistant to break down concepts and news in real time. Learn the causal relationships behind price action — not just the patterns on the chart.</p>
-      </div>
-      <div class="step-card">
-        <div class="step-number">03</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        </div>
-        <h3>Run the algo you understand</h3>
-        <p>Momentum-signal algo running on what you've learned. Not a black box — you understand the logic because you built the knowledge base that drives it.</p>
-      </div>
+  <!-- ===================== WHAT YOU GET ===================== -->
+  <section class="features-section" aria-labelledby="features-title">
+    <div class="features-header">
+      <div class="section-label" id="features-title">platform.modules</div>
     </div>
-  </div>
-</section>
+    <div class="features-grid">
 
-<section class="features-section" id="features" aria-labelledby="features-title">
-  <div class="container">
-    <div class="section-label">Product</div>
-    <h2 class="section-title" id="features-title">Two tiers. <em>One mission: understanding.</em></h2>
-    <div class="steps-grid" style="margin-top:var(--space-12);">
-      <div class="step-card">
-        <div class="step-number">Delta Core</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        </div>
-        <h3>Learning terminal — Free forever</h3>
-        <p>Build your market knowledge foundation with a structured learning environment designed for traders who want to understand, not just follow.</p>
-        <ul class="feature-list" style="margin-top:var(--space-2)">
-          <li>Modular lesson pathway with progressive difficulty</li>
-          <li>Applied market simulations using historical data</li>
+      <div class="feature-col reveal">
+        <div class="feature-col-tag">Delta Core — Free Forever</div>
+        <h3>The learning<br>terminal.</h3>
+        <p class="desc">Build market structure from first principles. Understand why prices move — not just when. Structured curriculum designed for students who think, not followers who react.</p>
+        <ul class="feature-list" role="list">
+          <li>Modular lesson pathway, progressive difficulty</li>
+          <li>Simulations on real historical data — practice without risk</li>
           <li>AI assistant that breaks concepts into smaller problems</li>
-          <li>Integrated notes system for tracking your learning</li>
-          <li>Basic market context from news and macro events</li>
+          <li>Integrated notes for tracking your own mental models</li>
+          <li>Macro and news context wired to your learning state</li>
         </ul>
       </div>
-      <div class="step-card">
-        <div class="step-number">Delta Pro</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-        </div>
-        <h3>Live terminal workspace — $20/month</h3>
-        <p>Everything in Core plus a professional multi-pane workspace for watching markets unfold in real time with educational context.</p>
-        <ul class="feature-list" style="margin-top:var(--space-2)">
-          <li>Multi-pane terminal workspace</li>
-          <li>Real-time charts via Alpaca market data API</li>
-          <li>News and sentiment feed with AI context</li>
-          <li>Macro event overlay (Fed, CPI, earnings)</li>
-          <li>Synchronized workspace for live macro events</li>
-          <li>AI explains market behavior — never directional calls</li>
-        </ul>
-      </div>
-      <div class="step-card">
-        <div class="step-number">Educational only</div>
-        <div class="step-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        </div>
-        <h3>No signals. No advice. Just understanding.</h3>
-        <p>Delta One is not a registered investment advisor. Nothing on the platform constitutes financial advice or trade recommendations. The AI explains market behavior in educational terms only.</p>
-        <ul class="feature-list" style="margin-top:var(--space-2)">
-          <li>No buy/sell/hold signals</li>
-          <li>No trade recommendations</li>
-          <li>No directional calls from AI</li>
-          <li>All content is educational</li>
-          <li>Signal engine is backend-only — never shown to users</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
 
-<section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
-  <div class="container">
-    <div class="section-label">Pricing</div>
-    <h2 class="section-title" id="pricing-title">Start free. <em>Scale when you're ready.</em></h2>
-    <div class="pricing-grid">
-      <div class="pricing-card">
-        <div class="pricing-tier">Delta Core</div>
-        <div class="pricing-price">
-          <span class="amount">$0</span>
-          <span class="period">/ month</span>
-        </div>
-        <p class="pricing-desc">Build your market knowledge foundation. Free, permanently.</p>
-        <ul class="pricing-features">
-          <li>Modular lesson pathway</li>
-          <li>Applied market simulations</li>
-          <li>AI learning assistant</li>
-          <li>Integrated notes system</li>
-          <li>Basic news &amp; macro context</li>
-          <li class="dim">Real-time charts</li>
-          <li class="dim">Live terminal workspace</li>
+      <div class="feature-col reveal" style="transition-delay:0.15s">
+        <div class="feature-col-tag">Delta Pro — Algo Engine</div>
+        <h3>The trading<br>engine.</h3>
+        <p class="desc">Momentum-signal algo running on what you've learned. Not a black box — you understand the logic because you built the knowledge base that drives it.</p>
+        <ul class="feature-list" role="list">
+          <li>Algo bot on top of your education progress</li>
+          <li>Live signals with explainability layer</li>
+          <li>Full backtest suite — inspect every trade the system made</li>
+          <li>Portfolio tracking and performance analytics</li>
+          <li>Synchronized workspace: learn, track, and trade in one terminal</li>
         </ul>
-        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Get started free</a>
       </div>
-      <div class="pricing-card featured">
-        <div class="pricing-badge">For active learners</div>
-        <div class="pricing-tier">Delta Pro</div>
-        <div class="pricing-price">
-          <span class="amount">$20</span>
-          <span class="period">/ month</span>
+
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo-mark" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/>
+          </svg>
         </div>
-        <p class="pricing-desc">Everything in Core plus a live terminal workspace for real-time market understanding.</p>
-        <ul class="pricing-features">
-          <li>Everything in Delta Core</li>
-          <li>Live multi-pane terminal</li>
-          <li>Real-time charts via Alpaca</li>
-          <li>News &amp; sentiment with AI context</li>
-          <li>Macro event overlay</li>
-          <li>Synchronized event workspace</li>
-          <li>AI explains — never directs</li>
-        </ul>
-        <a href="{{ url_for('auth.signup') }}" class="btn-pricing">Join Pro waitlist</a>
+        <div>
+          <div class="footer-brand-name">Delta One</div>
+          <div class="footer-launch">Launching <strong>January 1, 2027</strong></div>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
-
-<section class="cta-section" id="waitlist" aria-labelledby="cta-title">
-  <div class="container">
-    <div class="cta-inner">
-      <div class="hero-badge">Limited early access spots</div>
-      <h2 id="cta-title">Be first in line when we launch.</h2>
-      <p>We're onboarding early users now. Drop your email and we'll reach out as soon as your spot opens.</p>
-      <form class="waitlist-form" id="waitlist-form" novalidate>
-        <label for="email-input" class="sr-only">Your email address</label>
-        <input type="email" id="email-input" class="waitlist-input" placeholder="you@email.com" required autocomplete="email">
-        <button type="submit" class="waitlist-submit">Join waitlist</button>
-      </form>
-      <p class="success-msg" id="success-msg" role="status">✓ You're on the list. We'll be in touch.</p>
-      <p class="cta-note">No spam. Unsubscribe anytime. We respect your inbox.</p>
-    </div>
-  </div>
-</section>
-{% endblock %}
-
-{% block footer %}
-<footer class="site-footer" role="contentinfo">
-  <div class="container--wide">
-    <div class="footer-grid">
-      <div>
-        <a href="#" class="nav-logo" style="margin-bottom:var(--space-2)" aria-label="Delta One">
-          <img src="{{ url_for('static', filename='Logo.png') }}" alt="Delta One" class="logo-white" style="height:24px;width:auto">
-          <img src="{{ url_for('static', filename='Logo-dark.png') }}" alt="Delta One" class="logo-dark" style="height:24px;width:auto">
-        </a>
-        <p class="footer-copy">&copy; 2026 Delta One. All rights reserved.</p>
-      </div>
-      <nav class="footer-links" aria-label="Footer navigation">
-        <a href="#how">How it works</a>
-        <a href="#pricing">Pricing</a>
-        <a href="https://www.linkedin.com/company/thedeltaone" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-        <a href="https://instagram.com/thedeltaone" target="_blank" rel="noopener noreferrer">Instagram</a>
+      <nav class="footer-socials" aria-label="Social links">
+        <a href="#" target="_blank" rel="noopener noreferrer">Twitter / X</a>
+        <a href="https://github.com/justbrowsing37/DeltaOne" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="mailto:hello@deltaone.app">Contact</a>
       </nav>
     </div>
-    <div class="footer-disclaimer">
-      <strong>Disclaimer:</strong> Delta One provides algorithmic signals for informational and educational purposes only. Nothing on this platform constitutes financial advice, investment recommendations, or solicitation to buy or sell securities. Past signal performance does not guarantee future results. Trading involves substantial risk of loss. Always conduct your own due diligence and consult a licensed financial advisor before making investment decisions.
-    </div>
-  </div>
-</footer>
-{% endblock %}
+    <p class="footer-disclaimer">
+      // Delta One is a fintech education platform. Backtest results shown are historical and do not guarantee future performance. 
+      All trading involves risk. Delta One does not provide financial advice. 
+      Simulated results have inherent limitations and may not reflect actual trading outcomes.
+    </p>
+  </footer>
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='landing.js') }}"></script>
-{% endblock %}
+  <!-- ===================== SR-ONLY UTILITY ===================== -->
+  <style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}</style>
+
+  <script>
+  // ---- TICKER DATA ----
+  const TICKERS = [
+    { sym: 'AAPL',  price: '189.42', chg: '+1.24%',  up: true  },
+    { sym: 'TSLA',  price: '248.17', chg: '-0.83%',  up: false },
+    { sym: 'NVDA',  price: '872.90', chg: '+3.11%',  up: true  },
+    { sym: 'SPY',   price: '518.30', chg: '+0.47%',  up: true  },
+    { sym: 'MSFT',  price: '415.60', chg: '+0.92%',  up: true  },
+    { sym: 'AMZN',  price: '185.22', chg: '-0.31%',  up: false },
+    { sym: 'META',  price: '496.88', chg: '+1.67%',  up: true  },
+    { sym: 'QQQ',   price: '441.75', chg: '+0.59%',  up: true  },
+    { sym: 'GOOG',  price: '174.33', chg: '+0.88%',  up: true  },
+    { sym: 'JPM',   price: '197.41', chg: '-0.22%',  up: false },
+    { sym: 'BTC-X', price: '68,240', chg: '+2.44%',  up: true  },
+    { sym: 'VIX',   price: '14.20',  chg: '-1.05%',  up: false },
+    { sym: 'GLD',   price: '218.65', chg: '+0.35%',  up: true  },
+    { sym: 'DIA',   price: '388.10', chg: '+0.14%',  up: true  },
+    { sym: 'AMD',   price: '167.90', chg: '+2.05%',  up: true  },
+    { sym: 'NFLX',  price: '628.44', chg: '-0.61%',  up: false },
+  ];
+
+  (function buildTicker() {
+    const track = document.getElementById('tickerTrack');
+    // Double the set so the seamless loop works
+    const all = [...TICKERS, ...TICKERS];
+    track.innerHTML = all.map(t => `
+      <div class="ticker-item">
+        <span class="t-sym">${t.sym}</span>
+        <span class="t-price">$${t.price}</span>
+        <span class="t-chg ${t.up ? 'up' : 'down'}">${t.chg}</span>
+      </div>
+    `).join('');
+  })();
+
+  // ---- COUNTDOWN ----
+  (function countdown() {
+    const launch = new Date('2027-01-01T00:00:00');
+    function update() {
+      const now = new Date();
+      const diff = launch - now;
+      if (diff <= 0) {
+        document.getElementById('countdown-nav').textContent = 'LIVE NOW';
+        document.getElementById('days-value').textContent = '0';
+        return;
+      }
+      const days    = Math.floor(diff / 86400000);
+      const hours   = Math.floor((diff % 86400000) / 3600000);
+      const mins    = Math.floor((diff % 3600000)  / 60000);
+      const secs    = Math.floor((diff % 60000)    / 1000);
+      const pad = n => String(n).padStart(2, '0');
+      document.getElementById('countdown-nav').textContent =
+        `${days}d ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s until launch`;
+      document.getElementById('days-value').textContent = days;
+    }
+    update();
+    setInterval(update, 1000);
+  })();
+
+  // ---- WAITLIST FORM ----
+  document.getElementById('waitlist-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('email-input').value.trim();
+    if (!email || !email.includes('@')) return;
+    const btn = this.querySelector('.waitlist-submit');
+    btn.disabled = true;
+    btn.textContent = 'SUBMITTING...';
+
+    // In standalone HTML, hit /waitlist if server exists, else show success
+    fetch('/waitlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok) {
+        document.getElementById('waitlist-form').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'JOIN WAITLIST';
+        alert(data.error || 'Something went wrong.');
+      }
+    })
+    .catch(() => {
+      // Standalone fallback — treat as success for preview
+      document.getElementById('waitlist-form').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    });
+  });
+
+  // ---- SCROLL REVEAL ----
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

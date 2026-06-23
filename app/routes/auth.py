@@ -63,7 +63,10 @@ def signup():
             flash(error, "error")
         else:
             login_user(user)
-            return redirect(url_for("admin.shell")) if user.is_admin else redirect(url_for("workspace.shell"))
+            # New users go through onboarding first
+            if user.is_admin:
+                return redirect(url_for("admin.shell"))
+            return redirect(url_for("onboarding.index"))
     return render_template("auth/signup.html", form=form)
 
 

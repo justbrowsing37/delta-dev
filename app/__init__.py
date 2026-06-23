@@ -24,8 +24,13 @@ def create_app(config_class=Config) -> Flask:
 
     from app.routes.api import api_bp
     from app.routes.workspace import workspace_bp
+    from app.routes.onboarding import onboarding_bp
     csrf.exempt(api_bp)
     csrf.exempt(workspace_bp)
+    csrf.exempt(onboarding_bp)
+
+    # Jinja2 globals
+    app.jinja_env.globals['enumerate'] = enumerate
 
     @app.errorhandler(404)
     def not_found(e):

@@ -30,7 +30,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SECRET_KEY = os.environ["SECRET_KEY"]
+    SECRET_KEY = os.getenv("SECRET_KEY", "change-this-in-production")
     TEMPLATES_AUTO_RELOAD = True
     SEND_FILE_MAX_AGE_DEFAULT = 0
     SESSION_COOKIE_SECURE = True

@@ -324,7 +324,7 @@
           var completed = l.is_completed ? 'completed' : '';
           html += '<div class="ws-lesson-row ' + completed + '" onclick="wsOpenLesson(\'' + m.slug + '\',\'' + l.slug + '\')">';
           html += '<span class="ws-lesson-row-title">' + (l.title || 'Untitled') + '</span>';
-          html += '<span class="ws-lesson-row-meta">' + (l.estimated_minutes || '?') + ' min' + (completed ? ' &check;' : '') + '</span>';
+          html += '<span class="ws-lesson-row-meta">' + (l.item_type || 'lesson').toUpperCase() + ' • ' + (l.estimated_minutes || '?') + ' min' + (completed ? ' &check;' : '') + '</span>';
           html += '</div>';
         });
         html += '</div>';
@@ -347,7 +347,10 @@
       .then(function (l) {
         var html = '<button class="ws-back-btn" onclick="wsOpenModule(\'' + moduleSlug + '\')">&larr; back</button>';
         html += '<div class="ws-lesson-header"><h1>' + (l.title || '') + '</h1>';
-        html += '<div class="ws-lesson-estimate">' + (l.estimated_minutes || '?') + ' min read</div></div>';
+        html += '<div class="ws-lesson-estimate">' + (l.item_type || 'lesson').toUpperCase() + ' • ' + (l.estimated_minutes || '?') + ' min read</div></div>';
+        if (l.connects_to && l.connects_to.length) {
+          html += '<div class="ws-lesson-body"><p class="muted">Connects to: ' + escapeHtml(l.connects_to.join(', ')) + '</p></div>';
+        }
         html += '<div class="ws-lesson-body">' + (l.content_html || l.content || '<p>No content yet.</p>') + '</div>';
         html += '<div class="ws-lesson-footer">';
         html += '<div class="ws-lesson-nav">';

@@ -464,6 +464,8 @@ def seed():
 
             for les_data in lessons_data:
                 les_data.setdefault("is_published", True)
+                les_data.setdefault("item_type", "lesson")
+                les_data.setdefault("connects_to", [])
                 lesson = Lesson(module_id=module.id, **les_data)
                 db.session.add(lesson)
                 total_lessons += 1

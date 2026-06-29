@@ -12,6 +12,8 @@ class Lesson(db.Model):
     slug                = db.Column(db.String(200), nullable=False)
     content             = db.Column(db.Text)
     content_type        = db.Column(db.String(20), default="html")
+    item_type           = db.Column(db.String(20), default="lesson")
+    connects_to         = db.Column(db.JSON, default=list)
     sort_order          = db.Column(db.Integer, default=0)
     estimated_minutes   = db.Column(db.Integer, default=5)
     is_published        = db.Column(db.Boolean, default=False)

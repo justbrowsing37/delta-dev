@@ -128,6 +128,47 @@ def test_sweep_modules_import():
     assert LOOP_INTERVAL_SEC > 0
 
 
+def test_curriculum_service_supports_activity_items(app):
+    with app.app_context():
+        from app.models.module import Module
+        from app.models.lesson import Lesson
+        from app.services.curriculum import CurriculumService
+
+        module = Module(title="Activity Module", slug="activity-module", is_published=True)
+        db.session.add(module)
+        db.session.flush()
+
+        lesson = Lesson(
+            module_id=module.id,
+            title="Lesson One",
+            slug="lesson-one",
+            content="<p>Lesson content</p>",
+            is_published=True,
+            sort_order=0,
+        )
+        activity = Lesson(
+            module_id=module.id,
+            title="Activity One",
+            slug="activity-one",
+            content="<p>Activity content</p>",
+            is_published=True,
+            sort_order=1,
+            item_type="activity",
+            connects_to=["lesson-one"],
+        )
+        db.session.add_all([lesson, activity])
+        db.session.commit()
+
+        module_data = CurriculumService.get_module_by_slug("activity-module")
+        assert len(module_data["lessons"]) == 2
+        assert module_data["lessons"][1]["item_type"] == "activity"
+        assert module_data["lessons"][1]["connects_to"] == ["lesson-one"]
+
+        detail = CurriculumService.get_lesson("activity-module", "activity-one")
+        assert detail["item_type"] == "activity"
+        assert detail["connects_to"] == ["lesson-one"]
+
+
 def test_bot_logger_import():
     import bot_logger
     assert bot_logger is not None

@@ -80,6 +80,8 @@ class CurriculumService:
                 "sort_order": l.sort_order,
                 "estimated_minutes": l.estimated_minutes,
                 "concept_tags": l.concept_tags or [],
+                "item_type": getattr(l, "item_type", "lesson"),
+                "connects_to": getattr(l, "connects_to", []) or [],
                 "is_completed": l.id in completed_ids,
             })
 
@@ -155,6 +157,8 @@ class CurriculumService:
             "content_type": lesson.content_type,
             "estimated_minutes": lesson.estimated_minutes,
             "concept_tags": lesson.concept_tags or [],
+            "item_type": getattr(lesson, "item_type", "lesson"),
+            "connects_to": getattr(lesson, "connects_to", []) or [],
             "is_completed": is_completed,
             "prev_lesson_slug": prev_lesson.slug if prev_lesson else None,
             "prev_lesson_title": prev_lesson.title if prev_lesson else None,

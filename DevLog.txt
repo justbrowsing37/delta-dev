@@ -9,9 +9,9 @@
 OVERVIEW
 ────────────────────────────────────────────────────────────────────────────────
 
-Delta One is a trading education platform. It combines a live 4-hour sweep
-trading bot with interactive lessons, signal explanations, an AI teaching
-assistant, and an admin dashboard — all inside a terminal-themed workspace.
+Delta One is a trading education platform. It combines interactive lessons,
+an AI teaching assistant, and an admin dashboard — all inside a terminal-themed
+workspace. The trading bot is a separate project on hold until September.
 
 This log tracks every major change, from the initial groundwork to the current
 state and future plans. It's written in plain English so anyone can follow
@@ -246,6 +246,74 @@ blueprints, placeholder stubs, and outdated architecture decisions.
     • Verified docs/curriculum.txt and DevLog.txt remain accurate
     • Tested Flask app boots clean with all 18 routes, landing/auth/pricing
       return 200, workspace/admin gate on auth, 404 pages work
+
+
+────────────────────────────────────────────────────────────────────────────────
+2026-06-29 — Codebase Audit, Bot Removal & Platform Refocus
+────────────────────────────────────────────────────────────────────────────────
+
+Full audit of admin.py, admin.js, and the entire route/model skeleton. Then a
+decision was made: the trading bot is being put on hold until September. The
+platform rebuilds as a pure education product first — the bot integrates later
+when it's ready. All active bot-facing code was stripped from the platform repo.
+
+─── Audit Findings (admin.py + admin.js) ──────────────────────────────────────
+
+Audited the backend and frontend of the admin panel before wiping it:
+
+    • admin.py routes were solid — all gated with @login_required + admin check,
+      clean queries, all 4 imported models confirmed to exist
+    • admin.js (23KB) had all 4 views implemented (Usage, Users, System,
+      Bot Health), todo list, terminal copilot, and right-panel quick stats
+    • Issues found: tier cycling had no confirmation dialog (footgun),
+      changeTier POST had no CSRF token, bot poll interval leaked across views,
+      admin copilot used the same AI endpoint as regular users
+
+─── Skeleton Audit ────────────────────────────────────────────────────────────
+
+Mapped the full backend skeleton that all new frontends will build on:
+
+    • App factory (app/__init__.py), config, extensions — nothing to change
+    • 7 models confirmed (User, Module, Lesson, UserProgress, Session,
+      WaitlistEntry, AiInteraction)
+    • 6 blueprints: public, auth, api, workspace, admin, onboarding
+    • API spine: ai/ask, concepts, workspace curriculum routes, admin data
+      routes all healthy
+    • Services: CurriculumService, AiService, AuthService confirmed intact
+    • Decision: wipe all frontend HTML/CSS/JS and rebuild from scratch;
+      keep every line of Python, models, routes, and services
+
+─── Bot Removal — commit 0c1ebf5 ──────────────────────────────────────────────
+
+Stripped all bot-related code from the platform in a single commit:
+
+    • app/routes/api.py — removed /api/summary, /api/activity,
+      /api/symbol/<sym>, /api/footer, /api/signals/live, and
+      /api/admin/ai/usage/today. Only /api/ai/ask and /api/concepts remain.
+    • app/routes/admin.py — removed /admin/api/bot/health, log tail reader,
+      equity parser, and all bot imports. All user/usage/system routes kept.
+    • app/routes/workspace.py — removed SignalExplainerService import and
+      signals from the shell render context.
+    • app/models/__init__.py — BotEvent removed from imports and __all__.
+    • app/__init__.py — BotEvent removed from Flask shell context.
+    • app/utils/market.py — stripped to a 6-line timezone stub. SYMBOLS,
+      PAPER, compute_health, and market_open_state all removed.
+    • app/services/signal_explainer.py — entire file removed (100% bot).
+
+─── Curriculum Stats Added — same commit ──────────────────────────────────────
+
+While admin.py was open, added missing curriculum visibility:
+
+    • /admin/api/system now returns core_users, pro_users, admin_users,
+      lessons_completed_today, and total_lesson_completions
+    • New /admin/api/curriculum endpoint added — per-module breakdown of
+      total lessons, total completions, and completions today
+
+─── bot_event.py Deleted — commit 9f6b05f ─────────────────────────────────────
+
+    • app/models/bot_event.py deleted from the repo
+    • The bot_events table still exists in the live database — a drop_table
+      Alembic migration is pending before next deploy
 
 
 ────────────────────────────────────────────────────────────────────────────────

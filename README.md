@@ -1,53 +1,89 @@
-cd ~/delta-one
-cat > README.md << 'EOF'
 # Delta One
 
-> Trade what the market is actually doing.
+Delta One is a curriculum-first market learning product. The goal is to help beginners understand how markets move, how price behaves, and how to reason about market structure through lessons and applied activities.
 
-Delta One is a two-tier trading intelligence platform built to bring
-institutional-grade market analysis to everyday traders — without the
-$30,000 price tag.
+The current product priority is simple:
+- Build the curriculum well.
+- Build the lesson delivery system.
+- Make onboarding contributors easy.
+- Keep the bot private and in the background.
+- Keep AI as optional future work, not a launch dependency.
 
-## What We're Building
+## Current product direction
 
-**Delta Core** — Free, permanently. A modular learning terminal that
-teaches users why markets move, not just when to trade. Lesson pathway,
-applied simulations, AI assistant, and a notes system built for
-long-term learning.
+Delta One is not being positioned as a public trading bot or signal service at launch.
 
-**Delta Pro** — $20/month. A live multi-pane terminal workspace.
-Real-time charts, news and sentiment feed with AI context, and a macro
-event overlay built for watching live market events and actually
-understanding what you're seeing.
+At launch, the user-facing product is Delta Core:
+- structured lessons,
+- progressive activities that build on one another,
+- lesson progress tracking,
+- and a clean learning workspace for reading and working through concepts.
 
-## Strategy Methodology
+The bot still exists, but it is not the main promise of the product. It stays in the background as private infrastructure and as a possible future source of examples or case studies.
 
-The engine is built on a 4H liquidity sweep and stop-hunt reversal
-model. The core thesis is that when price sweeps beyond a key level and
-fails to hold, the breakout was a trap — and a reversal trade is
-available in the opposite direction.
+AI is also not a launch-critical feature. It may later support explanations, summaries, or guided help, but it is intentionally sidelined until the curriculum and lesson system are strong.
 
-Entry decisions layer three confluences:
-- 4H range structure built from 1H data
-- Breakout and reentry detection on the 5M execution layer
-- 50 EMA trend filter to block counter-trend entries
+## Launch target
 
-Risk is managed at every layer — ATR-based stops with swing structure
-confirmation, a minimum 1.5R reward-to-risk requirement, 2% equity risk
-per trade, and account-level circuit breakers that halt trading on
-excessive drawdown or consecutive losses.
+Target launch: January 1, 2027.
 
-The system is currently under paper trading validation on Alpaca.
+The launch standard is not "public bot sophistication."
+The launch standard is:
+- a clear curriculum,
+- enough lesson depth to be genuinely useful,
+- a functioning lesson viewer,
+- progress tracking,
+- contributor-friendly documentation,
+- and stable hosting and onboarding.
 
-## Status
+## Repo structure
 
-Active development. Paper trading validation underway.
-Projected launch: 2027.
+```text
+DeltaOne/
+├── app/                  # Flask app
+├── content/              # Curriculum content in markdown
+├── docs/                 # Canonical project documentation
+├── seeds/                # Seed scripts
+├── static/               # Frontend assets
+├── tests/                # Tests
+├── sweep_*.py            # Private bot / strategy infrastructure
+└── README.md
+```
 
-## Built By
+## Canonical docs
 
-Bhanu Sugguna — Founder  
+- `docs/product-vision.md` — what Delta One is, what it is not, and what matters now.
+- `docs/roadmap.md` — launch path centered on curriculum and lesson delivery.
+- `docs/technical-spec.md` — current application and content architecture.
+- `docs/curriculum.txt` — module and lesson/activity structure.
+- `docs/contributor-guide.md` — how collaborators should write and submit curriculum work.
+
+## Contributor focus
+
+If you are joining the project to help, the priority is curriculum work first.
+
+That means:
+- writing lessons,
+- writing activities,
+- keeping tone and structure consistent,
+- improving clarity,
+- and helping the learning experience feel coherent from start to finish.
+
+## Current status
+
+- Waitlist site is live on Cloudflare Pages.
+- Curriculum structure has been expanded to a lesson/activity pattern.
+- Module 0 has been started in repo content files.
+- Documentation has been rewritten to match the curriculum-first direction.
+
+## Principle
+
+Curriculum is the product.
+Everything else supports it.
+
+## Built by
+
+Bhanu Sugguna — Founder
 [LinkedIn](https://linkedin.com/in/bhanusugguna)
 
-Company Page
-[LinkedIn](https://linkedin.com/company/thedeltaone)
+[Delta One on LinkedIn](https://linkedin.com/company/thedeltaone)

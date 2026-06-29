@@ -1,106 +1,392 @@
-╔══════════════════════════════════════════════════════════════════════════════╗
-║              DELTA CORE — CURRICULUM ARCHITECTURE v2                      ║
-║              5 Modules · 22 Lessons · 20 Activities · 42 Items Total      ║
-║              ~110 min total estimated                                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+DELTA CORE — CURRICULUM ARCHITECTURE v3
+8 Modules · 4 Stages · Full Foundation + Path System
+Last updated: June 28, 2026
 
-Pattern: Lesson → Activity → Lesson → Activity (builds on prev) → ...
-Each activity builds on the output of the previous activity within the module.
-The final item in each module is always a lesson.
+════════════════════════════════════════════════════════════════════════════════
+OVERVIEW
+════════════════════════════════════════════════════════════════════════════════
 
-The learning arc:
+Delta Core is structured in two layers:
 
-  Module 0         Module 1         Module 2        Module 3        Module 4
-  What is          Reading          How Big         The Sweep       Reading
-  the Market? ──►  the Market ──►   Money Moves ──► Strategy   ──►  Signals
-  (Foundation)     (Charts)         (Institutional) (The Bot)       (Product)
+  FOUNDATION (Modules 0–5) — Hard gated. Every module must be completed
+  before the next one unlocks. The learner earns their way through.
 
+  OPEN LAYER (Module 6 + Stages A/B/C/R) — Unlocked after completing the
+  foundation. Soft gated. The learner chooses their path and moves at
+  their own pace.
 
-────────────────────────────────────────────────────────────────────────────────
-MODULE 0 — What is the Market?  (9 items)
-────────────────────────────────────────────────────────────────────────────────
-  Foundation module. Complete beginner, no assumed knowledge.
-  Icon: "bank"  |  Sort: 0
-
-  0.1   LESSON    What is a stock?                                     3 min
-  0.1A  ACTIVITY  Calculate your ownership % from a $1,000 NVDA buy    5 min
-  0.2   LESSON    What does it mean to own a share?                    3 min
-  0.2A  ACTIVITY  Analyse META's last buyback — calculate ownership shift 5 min
-  0.3   LESSON    How does a stock exchange work?                      4 min
-  0.3A  ACTIVITY  Read NVDA's Level 2 order book — identify spread & bids 5 min
-  0.4   LESSON    What moves a stock price?                            4 min
-  0.4A  ACTIVITY  Find an NVDA move with no news — explain via order flow 5 min
-  0.5   LESSON    Bulls, bears, and market sentiment                   3 min
-
+Everything is free at launch.
 
 ────────────────────────────────────────────────────────────────────────────────
-MODULE 1 — Reading the Market  (8 items)
+GATING LOGIC
 ────────────────────────────────────────────────────────────────────────────────
-  User can read a chart and understand what they're looking at.
-  Icon: "chart"  |  Sort: 1
 
-  1.1   LESSON    How to read a price chart                            4 min
-  1.1A  ACTIVITY  Label open/close/high/low on 3 candles of NVDA daily  5 min
-  1.2   LESSON    What is a trading range?                             3 min
-  1.2A  ACTIVITY  Draw the current trading range on your 1.1A chart     5 min
-  1.3   LESSON    Support and resistance                               3 min
-  1.3A  ACTIVITY  Add S/R lines to your 1.2A chart — mark tested levels 5 min
-  1.4   LESSON    Breakouts vs fakeouts                                3 min
-  1.4A  ACTIVITY  ID one breakout + one fakeout on your annotated chart  5 min
+  Modules 0–5   HARD GATE — module check must be completed to unlock next
+  Module 6      SOFT GATE — path selection required to unlock stages
+  Stages A/B/C  SOFT GATE — learner progresses at own pace
+  Stage R       UNLOCKED for everyone upon completing Module 6
 
+  Each module ends with a CHECK item. The check format is:
+    - What you should be able to do now (3–4 bullets)
+    - Quick questions (3–5 short prompts requiring genuine thought)
+    - Chart task (one real-chart application prompt)
+    - Before you move on (honest self-assessment — if you can't do X, go back)
 
-────────────────────────────────────────────────────────────────────────────────
-MODULE 2 — How Big Money Moves  (10 items)
-────────────────────────────────────────────────────────────────────────────────
-  Bridges retail thinking → institutional thinking.
-  Icon: "globe"  |  Sort: 2
-
-  2.1   LESSON    Retail traders vs institutional traders              3 min
-  2.1A  ACTIVITY  Compare NVDA volume on normal day vs earnings day     5 min
-  2.2   LESSON    What is liquidity?                                   3 min
-  2.2A  ACTIVITY  Circle 3 liquidity clusters on your Module 1 chart    5 min
-  2.3   LESSON    Why stop hunts happen                                4 min
-  2.3A  ACTIVITY  Find a stop hunt candle — mark stops, sweep, reversal  5 min
-  2.4   LESSON    Liquidity sweeps explained                           4 min
-  2.4A  ACTIVITY  Classify your 2.3A candle: sweep or genuine breakout?  5 min
-  2.5   LESSON    Reading the 4H range                                 3 min
-  2.5A  ACTIVITY  Switch to 4H — identify range high/low, mark position  5 min
-
+  At launch: self-reported completion. Post-launch Pro feature: AI feedback
+  on check responses via Groq or equivalent.
 
 ────────────────────────────────────────────────────────────────────────────────
-MODULE 3 — The Sweep Strategy  (8 items)
+CONTENT FORMAT
 ────────────────────────────────────────────────────────────────────────────────
-  User understands exactly what Delta One detects and why.
-  Icon: "target"  |  Sort: 3
 
-  3.1   LESSON    What Delta One looks for                             4 min
-  3.1A  ACTIVITY  Find a valid setup on your 4H chart from 2.5A         5 min
-  3.2   LESSON    Entry conditions                                     4 min
-  3.2A  ACTIVITY  Define exact entry price, confirmation, invalidation   5 min
-  3.3   LESSON    Risk management                                      4 min
-  3.3A  ACTIVITY  Set stop + target on 3.2A entry — calculate R:R ratio  5 min
-  3.4   LESSON    When to flip direction                               3 min
-  3.4A  ACTIVITY  Find a directional flip moment on your full chart      5 min
+  Pattern: Lesson → Activity → Lesson → Activity → ... → Check
+  Each activity builds on the output of the previous activity.
+  Each module check threads back to concepts from earlier modules.
 
+  Lesson template:
+    # [Title]
+    ## The idea in one sentence
+    ## Why this matters
+    ## How it works
+    > Key concept: [...]
+    ## What this looks like in the market
+    ## Common mistake
+    ## Next
+
+  Activity template:
+    # Activity [X.XA] — [Title]
+    ## What you're doing
+    ## What you need
+    ## Your task
+    ## What to look for
+    ## Connects to
+
+  Check template:
+    # Module X Check
+    ## What you should be able to do now
+    ## Quick questions
+    ## Chart task
+    ## Before you move on
+
+  File naming:
+    Lessons:    X.Y-short-title.md        e.g. 0.1-what-is-a-stock.md
+    Activities: X.YA-short-title.md       e.g. 0.1A-calculate-ownership.md
+    Checks:     X-check.md                e.g. 0-check.md
+
+  Tone: plain English, second person, active voice, no fluff, no advice language.
+  Examples: use NVDA or META as default tickers. No hypothetical companies.
+  Target length: 400–550 words per lesson (3–4 min read).
 
 ────────────────────────────────────────────────────────────────────────────────
-MODULE 4 — Understanding the Signals  (7 items)
+LEARNING ARC
 ────────────────────────────────────────────────────────────────────────────────
-  Connects the curriculum to the actual product.
-  Icon: "signal"  |  Sort: 4
 
-  4.1   LESSON    How to read a Delta One signal                       4 min
-  4.1A  ACTIVITY  Pull a real signal — label every field                 5 min
-  4.2   LESSON    What the signal is telling you                       3 min
-  4.2A  ACTIVITY  Write a 3-sentence plain-English explanation of 4.1A   5 min
-  4.3   LESSON    What the signal is NOT telling you                   3 min
-  4.3A  ACTIVITY  List 2 beginner misreads of 4.1A signal — correct each 5 min
-  4.4   LESSON    Paper trading a signal                               5 min
+  Module 0         Module 1         Module 2         Module 3
+  What is      →   Reading      →   How Big      →   How Price
+  the Market       the Market       Money Moves       Really Behaves
+
+  Module 4         Module 5         Module 6
+  Pattern Box  →   Reading a    →   THE FORK
+                   Setup            Choose your path
+
+                         ↓              ↓              ↓              ↓
+                      Stage A        Stage B        Stage C        Stage R
+                      ETF &          Swing          Intraday /     Resources
+                      Long-Term      Trading        Day Trading
 
 
 ════════════════════════════════════════════════════════════════════════════════
-TOTALS
+FOUNDATION — MODULES 0–5 (HARD GATED)
 ════════════════════════════════════════════════════════════════════════════════
-  Lessons:     22  (~76 min)
-  Activities:  20  (~100 min)
-  Total items: 42  (~176 min / ~3hrs)
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 0 — What is the Market?  (~10 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Complete beginner understands what they are looking at.
+        No assumed knowledge. No jargon without explanation.
+  Unlocks: Module 1
+
+  0.1   LESSON    What is a stock?
+  0.1A  ACTIVITY  Calculate your ownership % from a $1,000 NVDA buy
+  0.2   LESSON    What does it mean to own a share?
+  0.2A  ACTIVITY  Analyse META's last buyback — calculate ownership shift
+  0.3   LESSON    How does a stock exchange work?
+  0.3A  ACTIVITY  Read NVDA's Level 2 order book — identify spread and bids
+  0.4   LESSON    What moves a stock price?
+  0.4A  ACTIVITY  Find an NVDA move with no news — explain via order flow
+  0.5   LESSON    Bulls, bears, and market sentiment
+  0.C   CHECK     Module 0 check — chart task + reflection
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 1 — Reading the Market  (~9 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner can read a price chart and understand what they are seeing.
+        Introduces candlesticks, ranges, support/resistance, and breakouts.
+  Threads back: Module 0 price movement concepts
+  Unlocks: Module 2
+
+  1.1   LESSON    How to read a price chart
+  1.1A  ACTIVITY  Label open/close/high/low on 3 candles of NVDA daily
+  1.2   LESSON    What is a trading range?
+  1.2A  ACTIVITY  Draw the current trading range on your 1.1A chart
+  1.3   LESSON    Support and resistance
+  1.3A  ACTIVITY  Add S/R lines to your 1.2A chart — mark tested levels
+  1.4   LESSON    Breakouts vs fakeouts
+  1.4A  ACTIVITY  Identify one breakout and one fakeout on your annotated chart
+  1.C   CHECK     Module 1 check — chart task + reflection
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 2 — How Big Money Moves  (~11 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner understands the difference between retail and institutional
+        thinking. Introduces liquidity as a concept.
+  Threads back: Module 1 ranges and breakouts
+  Unlocks: Module 3
+
+  2.1   LESSON    Retail traders vs institutional traders
+  2.1A  ACTIVITY  Compare NVDA volume on a normal day vs earnings day
+  2.2   LESSON    What is liquidity?
+  2.2A  ACTIVITY  Circle 3 liquidity clusters on your Module 1 chart
+  2.3   LESSON    Why stop hunts happen
+  2.3A  ACTIVITY  Find a stop hunt candle — mark stops, sweep, reversal
+  2.4   LESSON    Liquidity sweeps explained
+  2.4A  ACTIVITY  Classify your 2.3A candle: sweep or genuine breakout?
+  2.5   LESSON    Reading the 4H range
+  2.5A  ACTIVITY  Switch to 4H — identify range high/low, mark position
+  2.C   CHECK     Module 2 check — chart task + reflection
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 3 — How Price Really Behaves  (~9 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner builds conceptual intuition for why price behaves
+        counterintuitively. Concepts introduced first — terminology follows
+        from understanding, not the other way around.
+  Threads back: Module 1 ranges, Module 2 institutional behavior
+  Unlocks: Module 4
+
+  NOTE FOR CONTRIBUTORS: Do not lead with vocabulary (stop hunt, reversal).
+  Build the intuition first. The learner should understand the concept
+  before they learn what it is called.
+
+  3.1   LESSON    Price doesn't move in straight lines
+  3.1A  ACTIVITY  Trace a real move — find where it looked wrong before it went right
+  3.2   LESSON    Why price goes where people are watching
+  3.2A  ACTIVITY  Mark the obvious levels on a chart — observe where price visited
+  3.3   LESSON    The engineered move
+  3.3A  ACTIVITY  Find a move that extended just past a key level then reversed
+  3.4   LESSON    Why the obvious trade is often wrong
+  3.4A  ACTIVITY  Three examples — identify which side got trapped and why
+  3.C   CHECK     Module 3 check — chart task + reflection
+                  (threads back to range structure from Module 1)
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 4 — Pattern Box  (~9 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner builds a visual vocabulary. Each lesson introduces one
+        pattern — what it looks like, which timeframes it appears on, what
+        its side effects are, and what it is commonly mistaken for.
+        No execution. No entry signals. Recognition only.
+  Threads back: Module 3 conceptual intuition
+  Unlocks: Module 5
+
+  NOTE FOR CONTRIBUTORS: This is a reference module. The learner is building
+  a toolkit for recognition, not a trading plan. Each lesson should include
+  a clear "what this is NOT" section to address the most common misread.
+
+  4.1   LESSON    Ranges and consolidation — what they look like and why they form
+  4.1A  ACTIVITY  Find and label a range on a current chart
+  4.2   LESSON    Breakouts and false breakouts — visual differences and timeframe context
+  4.2A  ACTIVITY  Spot the false break — find one on NVDA or META
+  4.3   LESSON    Sweeps and wicks — what they are, where they appear, what follows
+  4.3A  ACTIVITY  Find a wick sweep on a real chart — label the sweep and what came after
+  4.4   LESSON    Trend structure — higher highs, lower lows, and structural shifts
+  4.4A  ACTIVITY  Map a trend shift — find where structure changed direction
+  4.C   CHECK     Module 4 check — chart task + reflection
+
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 5 — Reading a Setup  (~9 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner assembles everything from Modules 0–4 into a coherent read.
+        This is the foundation capstone. After this module the product opens.
+        The standard is understanding, not execution-readiness.
+  Threads back: All previous modules — every item should reference prior concepts
+  Unlocks: Module 6 (the fork) + completion badge
+
+  NOTE FOR CONTRIBUTORS: Module 5 is the hardest to write well because it
+  must genuinely integrate all prior content. Activities here should require
+  the learner to explain their reasoning, not just identify a pattern.
+  5.3A is the capstone activity — treat it as a mini-assessment of the
+  entire foundation curriculum.
+
+  5.1   LESSON    What makes a setup valid — confluence, not one signal
+  5.1A  ACTIVITY  Build a confluence checklist using concepts from all prior modules
+  5.2   LESSON    Reading context before the chart — macro backdrop, session, structure
+  5.2A  ACTIVITY  Context first — given a chart, write the context read before identifying any pattern
+  5.3   LESSON    Putting a read together — walk through a real example end to end
+  5.3A  ACTIVITY  Write your own read — full plain-English analysis of a new chart
+                  (structure, pattern, confluence, what confirms, what invalidates)
+  5.4   LESSON    When to stand aside — recognizing ambiguity and doing nothing
+  5.4A  ACTIVITY  The no-trade journal — find three charts where not trading was right
+  5.C   CHECK     Module 5 check — chart task + reflection
+                  COMPLETION MOMENT: learner has finished the foundation.
+                  UX should acknowledge this explicitly before opening Module 6.
+
+
+════════════════════════════════════════════════════════════════════════════════
+THE FORK — MODULE 6 (SOFT GATED)
+════════════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────────────
+MODULE 6 — Choose Your Path  (~8 items)
+────────────────────────────────────────────────────────────────────────────────
+  Goal: Learner selects the trading style that fits their goals, time
+        commitment, and personality. Product responds by surfacing the
+        relevant stage. All paths are presented neutrally — no path is
+        better than another.
+  Unlocks: Stage A, B, or C (based on selection) + Stage R (for everyone)
+
+  NOTE FOR CONTRIBUTORS: 6.1 must be completely neutral. Do not imply that
+  day trading is more sophisticated or that ETF investing is boring. Each
+  path has different demands and different outcomes. Present them honestly.
+
+  6.1   LESSON    What kind of trader do you want to be — honest breakdown of all paths
+  6.2   LESSON    Path A — The long game (ETF, position trading, macro cycles)
+  6.2A  ACTIVITY  Build a sample long-term allocation using index ETFs
+  6.3   LESSON    Path B — The swing (daily/4H application, multi-day holds)
+  6.3A  ACTIVITY  Find a swing setup using Module 5 skills
+  6.4   LESSON    Path C — The active trader (intraday, session structure, execution discipline)
+  6.4A  ACTIVITY  Map an intraday session on NVDA — identify session structure
+  6.C   CHECK     Path selection — learner declares their chosen path
+                  (not a quiz — a genuine decision prompt with written reflection)
+
+
+════════════════════════════════════════════════════════════════════════════════
+OPEN LAYER — STAGES (SOFT GATED, UNLOCKED AFTER MODULE 6)
+════════════════════════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────────────────────────
+STAGE A — ETF and Long-Term Investing
+────────────────────────────────────────────────────────────────────────────────
+  For: Learners who chose Path A in Module 6.
+  Goal: Apply the foundation concepts at a higher timeframe and lower
+        frequency. Understand macro cycles, index structure, sector rotation,
+        rebalancing, and position trading.
+
+  Items to be defined by contributors.
+  Suggested scope:
+    - What is an ETF and how does it work
+    - Index investing vs stock picking
+    - Macro cycles — expansion, contraction, recovery
+    - Sector rotation — how money moves between sectors
+    - Position trading — holding through volatility
+    - Rebalancing — when and why
+    - Building a simple long-term portfolio
+    - Stage A check
+
+
+────────────────────────────────────────────────────────────────────────────────
+STAGE B — Swing Trading
+────────────────────────────────────────────────────────────────────────────────
+  For: Learners who chose Path B in Module 6.
+  Goal: Apply foundation concepts at the daily and 4H level. Multi-day
+        to multi-week holds. Pattern recognition in context. Hold management.
+
+  Items to be defined by contributors.
+  Suggested scope:
+    - Swing trading defined — holding period, time commitment, realistic expectations
+    - Applying Module 4 patterns at the daily level
+    - Identifying swing setups using Module 5 confluence framework
+    - Entry, stop, and target placement on swing timeframes
+    - Hold management — when to stay in, when to exit early
+    - Managing positions around news and earnings
+    - Building a simple swing trading process
+    - Stage B check
+
+
+────────────────────────────────────────────────────────────────────────────────
+STAGE C — Intraday and Day Trading
+────────────────────────────────────────────────────────────────────────────────
+  For: Learners who chose Path C in Module 6.
+  Goal: Apply foundation concepts at the 1H and below. Session structure,
+        execution discipline, intraday range reading, the mental demands
+        of high-frequency decisions.
+
+  Items to be defined by contributors.
+  Suggested scope:
+    - Day trading defined — session commitment, capital requirements, realistic expectations
+    - Session structure — London open, New York open, overlap, close
+    - Intraday range reading — applying Module 4 patterns at 15M and 5M
+    - Execution — entries, stops, targets on short timeframes
+    - The mental demands of intraday trading — patience, discipline, not overtrading
+    - Common intraday mistakes and how to avoid them
+    - Building a simple intraday process
+    - Stage C check
+
+
+────────────────────────────────────────────────────────────────────────────────
+STAGE R — Resources  (unlocked for all learners after Module 6)
+────────────────────────────────────────────────────────────────────────────────
+  For: Everyone — regardless of path chosen.
+  Goal: Give the learner an honest map of the full trading world and
+        the best external resources for going deeper. Curated, not exhaustive.
+        No execution teaching here — this is reference and exploration only.
+
+  NOTE: Stage R has no activities. It is a reference layer.
+        No fluff. No affiliate framing. Just honest, useful pointers.
+
+  R.1   LESSON    The full trading landscape — holding periods, asset classes, the full map
+  R.2   LESSON    Forex — what it is, how it works, who it is for
+  R.3   LESSON    Futures — contracts, leverage, and risk
+  R.4   LESSON    Options — rights, obligations, and why complexity matters
+  R.5   LESSON    Crypto — volatility, market structure, and speculation
+  R.6   REFERENCE Tools and platforms worth knowing — charting, brokers, screeners
+  R.7   REFERENCE Books and resources worth reading — curated list with honest context
+  R.8   REFERENCE Glossary — living document, all terms used across the curriculum
+
+
+════════════════════════════════════════════════════════════════════════════════
+TOTALS (FOUNDATION)
+════════════════════════════════════════════════════════════════════════════════
+
+  Module 0:   9 items + 1 check = 10
+  Module 1:   8 items + 1 check = 9
+  Module 2:   10 items + 1 check = 11
+  Module 3:   8 items + 1 check = 9
+  Module 4:   8 items + 1 check = 9
+  Module 5:   8 items + 1 check = 9
+  Module 6:   7 items + 1 check = 8
+  ─────────────────────────────────
+  Foundation total: 65 items
+
+  Stage A:    ~8 items (to be scoped by contributors)
+  Stage B:    ~8 items (to be scoped by contributors)
+  Stage C:    ~8 items (to be scoped by contributors)
+  Stage R:    8 reference items (no activities)
+  ─────────────────────────────────
+  Open layer estimate: ~32 items
+
+  TOTAL ESTIMATE: ~97 items across full curriculum
+
+
+════════════════════════════════════════════════════════════════════════════════
+CONTRIBUTOR ASSIGNMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+  Module 0 — content exists in content/module-0/ (complete, do not modify)
+  Modules 1–5 — to be written by contributors per this spec
+  Module 6 — to be written by contributors per this spec
+  Stages A/B/C — item-level breakdown to be defined and written by contributors
+  Stage R — lessons and references to be written by contributors
+
+  All contributors must read docs/contributor-guide.md before writing.
+  All content goes in content/module-X/ or content/stage-X/ following naming conventions.
+  All items must follow the lesson, activity, or check template exactly.
+
+  Questions or scope decisions go to the project lead before writing begins.
+  Do not invent new module structure — the architecture in this file is the
+  source of truth.

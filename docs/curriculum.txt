@@ -385,6 +385,8 @@ CONTRIBUTOR ASSIGNMENTS
 
   All contributors must read docs/contributor-guide.md before writing.
   All content goes in content/module-X/ or content/stage-X/ following naming conventions.
+
+  Module 1–6 and Stage A/B/C/R folders are scaffolded in content/module-1 through content/module-6 and content/stage-a through content/stage-r.
   All items must follow the lesson, activity, or check template exactly.
 
   Questions or scope decisions go to the project lead before writing begins.

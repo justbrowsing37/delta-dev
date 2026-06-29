@@ -4,13 +4,32 @@
 {% block head %}
 <style>
   body { background: #0d0d0d; color: #e0e0e0; font-family: 'JetBrains Mono', 'Fira Mono', monospace; }
-  .ob-wrap { max-width: 600px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .ob-wrap { max-width: 640px; margin: 80px auto; padding: 0 24px; text-align: center; }
   .ob-score { font-size: 3rem; color: #c8ff00; margin-bottom: 4px; }
   .ob-label { font-size: 1.1rem; margin-bottom: 8px; }
-  .ob-msg { color: #888; font-size: 0.85rem; margin-bottom: 48px; line-height: 1.6; }
-  .ob-plan { text-align: left; background: #111; border: 1px solid #222; border-radius: 4px;
-    padding: 24px; margin-bottom: 40px; }
-  .ob-plan-title { color: #555; font-size: 0.75rem; margin-bottom: 16px; }
+  .ob-msg { color: #888; font-size: 0.85rem; margin-bottom: 40px; line-height: 1.6; }
+
+  /* Topic breakdown */
+  .ob-breakdown { text-align: left; background: #111; border: 1px solid #1e1e1e;
+    border-radius: 4px; padding: 24px; margin-bottom: 28px; }
+  .ob-breakdown-title { color: #555; font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 16px; }
+  .ob-topic { display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid #1a1a1a; font-size: 0.82rem; }
+  .ob-topic:last-child { border-bottom: none; }
+  .ob-topic-name { flex: 1; color: #bbb; }
+  .ob-topic-bar-wrap { flex: 1; height: 4px; background: #1e1e1e; border-radius: 2px; }
+  .ob-topic-bar { height: 4px; border-radius: 2px; background: #333; transition: width 0.4s; }
+  .ob-topic-bar.full  { background: #c8ff00; }
+  .ob-topic-bar.half  { background: #7acc00; }
+  .ob-topic-bar.none  { background: #333; }
+  .ob-topic-score { font-size: 0.75rem; color: #555; min-width: 36px; text-align: right; }
+
+  /* Learning path */
+  .ob-plan { text-align: left; background: #111; border: 1px solid #1e1e1e;
+    border-radius: 4px; padding: 24px; margin-bottom: 40px; }
+  .ob-plan-title { color: #555; font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase; margin-bottom: 16px; }
   .ob-plan-item { display: flex; align-items: center; gap: 12px; padding: 8px 0;
     border-bottom: 1px solid #1a1a1a; font-size: 0.85rem; }
   .ob-plan-item:last-child { border-bottom: none; }
@@ -18,6 +37,7 @@
   .ob-plan-dot.active { background: #c8ff00; }
   .ob-plan-item.active { color: #c8ff00; }
   .ob-plan-item.muted { color: #444; }
+
   .ob-btn { display: inline-block; background: #c8ff00; color: #0d0d0d; border: none;
     padding: 14px 40px; font-family: inherit; font-size: 0.9rem; cursor: pointer;
     border-radius: 2px; text-decoration: none; transition: background 0.15s; }
@@ -33,6 +53,31 @@
   <div class="ob-label">{{ result.label }}</div>
   <div class="ob-msg">{{ result.message }}</div>
 
+  {# Topic breakdown #}
+  {% if result.topic_breakdown %}
+  <div class="ob-breakdown">
+    <div class="ob-breakdown-title">topic breakdown</div>
+    {% for topic, data in result.topic_breakdown.items() %}
+      {% set pct = (data.correct / data.total * 100) | int %}
+      {% if pct == 100 %}
+        {% set bar_class = "full" %}
+      {% elif pct >= 50 %}
+        {% set bar_class = "half" %}
+      {% else %}
+        {% set bar_class = "none" %}
+      {% endif %}
+      <div class="ob-topic">
+        <div class="ob-topic-name">{{ topic }}</div>
+        <div class="ob-topic-bar-wrap">
+          <div class="ob-topic-bar {{ bar_class }}" style="width: {{ pct }}%"></div>
+        </div>
+        <div class="ob-topic-score">{{ data.correct }}/{{ data.total }}</div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# Learning path #}
   <div class="ob-plan">
     <div class="ob-plan-title">your learning path</div>
     {% set modules = [

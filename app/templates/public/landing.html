@@ -364,7 +364,7 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="hero-label">Private Beta · Launching January 1</div>
+      <div class="hero-label">Now Open · Launching January 1</div>
       <h1>Learn markets.<br>Trade with <span class="accent">conviction.</span></h1>
       <p class="hero-sub">
         Delta One is a fintech education platform built for college students who are tired of market noise.
@@ -374,9 +374,9 @@
         <form class="waitlist-form" id="waitlist-form">
           <label for="email-input" class="sr-only">Email address</label>
           <input type="email" id="email-input" class="waitlist-input" placeholder="your@email.com" autocomplete="email" required>
-          <button type="submit" class="waitlist-submit">JOIN WAITLIST</button>
+          <button type="submit" class="waitlist-submit">GET EARLY ACCESS</button>
         </form>
-        <div class="success-msg" id="success-msg">you&apos;re on the list. see you january 1.</div>
+        <div class="success-msg" id="success-msg">you&apos;re in. see you january 1.</div>
         <p class="waitlist-note">// No spam. No credit card. Just early access.</p>
       </div>
       <div class="hero-countdown">
@@ -520,7 +520,7 @@
     fetch('/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})})
     .then(r=>r.json()).then(data=>{
       if(data.ok){document.getElementById('waitlist-form').style.display='none';document.getElementById('success-msg').style.display='block';}
-      else{btn.disabled=false;btn.textContent='JOIN WAITLIST';alert(data.error||'Something went wrong.');}
+      else{btn.disabled=false;btn.textContent='GET EARLY ACCESS';alert(data.error||'Something went wrong.');}
     }).catch(()=>{document.getElementById('waitlist-form').style.display='none';document.getElementById('success-msg').style.display='block';});
   });
 

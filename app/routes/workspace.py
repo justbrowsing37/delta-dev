@@ -1,9 +1,8 @@
 import logging
-from flask import Blueprint, render_template, jsonify, request, abort
+from flask import Blueprint, render_template, jsonify, abort
 from flask_login import login_required, current_user
 
 from app.services.curriculum import CurriculumService
-from app.services.signal_explainer import SignalExplainerService
 
 log = logging.getLogger(__name__)
 workspace_bp = Blueprint("workspace", __name__)
@@ -14,15 +13,13 @@ workspace_bp = Blueprint("workspace", __name__)
 def shell():
     try:
         modules = CurriculumService.get_published_modules(user_id=current_user.id)
-        signals = SignalExplainerService.get_recent_signals(limit=6)
         progress = CurriculumService.get_progress(current_user.id)
     except Exception as e:
         log.error("Workspace shell data failed: %s", e)
-        modules, signals, progress = [], [], {"completed": 0, "total": 0, "percentage": 0}
+        modules, progress = [], {"completed": 0, "total": 0, "percentage": 0}
     return render_template(
         "workspace/shell.html",
         modules=modules,
-        signals=signals,
         progress=progress,
     )
 
@@ -76,4 +73,3 @@ def api_mark_complete(module_slug, lesson_slug):
     except Exception as e:
         log.error("Failed to mark lesson complete %s/%s: %s", module_slug, lesson_slug, e)
         return jsonify({"ok": False, "error": "Internal error"}), 500
-

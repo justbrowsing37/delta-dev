@@ -74,9 +74,9 @@ def create_app(config_class=Config) -> Flask:
 
     @app.shell_context_processor
     def shell_context():
-        from app.models import User, Module, Lesson, UserProgress, BotEvent, WaitlistEntry
+        from app.models import User, Module, Lesson, UserProgress, WaitlistEntry, AiInteraction
         return {"db": db, "User": User, "Module": Module, "Lesson": Lesson,
-                "UserProgress": UserProgress, "BotEvent": BotEvent,
-                "WaitlistEntry": WaitlistEntry}
+                "UserProgress": UserProgress, "WaitlistEntry": WaitlistEntry,
+                "AiInteraction": AiInteraction}
 
     return app

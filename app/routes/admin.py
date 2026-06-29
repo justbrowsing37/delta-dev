@@ -1,8 +1,6 @@
-import re
 import uuid as uuid_lib
 import logging
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from flask import Blueprint, render_template, jsonify, request, abort
 from flask_login import login_required, current_user
@@ -10,13 +8,10 @@ from sqlalchemy import func
 
 from app.extensions import db
 from app.models.user import User
-from app.models.bot_event import BotEvent
 from app.models.ai_interaction import AiInteraction
 from app.models.waitlist_entry import WaitlistEntry
-from app.utils.market import TIMEZONE, SYMBOLS, now_et, market_open_state, compute_health
 
 log = logging.getLogger(__name__)
-
 admin_bp = Blueprint("admin", __name__)
 
 
@@ -28,34 +23,6 @@ def _admin_required(f):
             abort(403)
         return f(*args, **kwargs)
     return wrapper
-
-
-LOG_PATH = Path(__file__).parent.parent.parent / "logs" / "sweep_bot.log"
-
-
-def _parse_equity_from_log():
-    if not LOG_PATH.exists():
-        return None
-    try:
-        lines = LOG_PATH.read_text().splitlines()
-        for line in reversed(lines):
-            m = re.search(r"Equity:\s*\$([0-9,]+\.?\d*)", line)
-            if m:
-                return float(m.group(1).replace(",", ""))
-    except Exception as e:
-        log.warning("Failed to parse equity from log: %s", e)
-    return None
-
-
-def _read_log_tail(n=50):
-    if not LOG_PATH.exists():
-        return []
-    try:
-        lines = LOG_PATH.read_text().splitlines()
-        return lines[-n:]
-    except Exception as e:
-        log.warning("Failed to read log tail: %s", e)
-        return []
 
 
 @admin_bp.route("/")
@@ -148,6 +115,7 @@ def api_users():
             "email": u.email,
             "tier": u.tier,
             "display_name": u.display_name,
+            "skill_level": u.skill_level,
             "last_login": u.last_login_at.isoformat() if u.last_login_at else None,
             "created_at": u.created_at.isoformat() if u.created_at else None,
             "ai_queries_today": ai_counts.get(u.id, 0),
@@ -178,6 +146,7 @@ def api_user_detail(user_id):
             "email": u.email,
             "tier": u.tier,
             "display_name": u.display_name,
+            "skill_level": u.skill_level,
             "is_active": u.is_active,
             "is_admin": u.is_admin,
             "is_pro": u.is_pro,
@@ -223,119 +192,92 @@ def api_user_tier(user_id):
 @login_required
 @_admin_required
 def api_system():
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
     total_users = User.query.count()
+    core_users = User.query.filter_by(tier="core").count()
+    pro_users = User.query.filter_by(tier="pro").count()
+    admin_users = User.query.filter_by(tier="admin").count()
+    users_today = User.query.filter(User.created_at >= today_start).count()
+
     total_ai = AiInteraction.query.count()
-    total_events = BotEvent.query.count()
+    ai_today = AiInteraction.query.filter(AiInteraction.created_at >= today_start).count()
     total_waitlist = WaitlistEntry.query.count()
 
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    users_today = User.query.filter(User.created_at >= today_start).count()
-    ai_today = AiInteraction.query.filter(AiInteraction.created_at >= today_start).count()
-    events_today = BotEvent.query.filter(BotEvent.timestamp >= today_start).count()
+    from app.models.lesson import Lesson
+    from app.models.progress import UserProgress
+    lessons_completed_today = UserProgress.query.filter(
+        UserProgress.completed_at >= today_start,
+        UserProgress.status == "completed"
+    ).count()
+    total_completions = UserProgress.query.filter_by(status="completed").count()
 
     return jsonify({
         "total_users": total_users,
+        "core_users": core_users,
+        "pro_users": pro_users,
+        "admin_users": admin_users,
         "users_today": users_today,
         "total_ai_interactions": total_ai,
         "ai_today": ai_today,
-        "total_bot_events": total_events,
-        "events_today": events_today,
         "total_waitlist": total_waitlist,
+        "lessons_completed_today": lessons_completed_today,
+        "total_lesson_completions": total_completions,
     })
 
 
-@admin_bp.route("/api/bot/health")
+@admin_bp.route("/api/curriculum")
 @login_required
 @_admin_required
-def api_bot_health():
-    now = now_et()
-    today = now.date()
-    today_start_utc = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+def api_curriculum():
+    from app.models.lesson import Lesson
+    from app.models.module import Module
+    from app.models.progress import UserProgress
 
-    events = (
-        BotEvent.query
-        .filter(BotEvent.timestamp >= today_start_utc)
-        .order_by(BotEvent.timestamp.desc())
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    modules = (
+        db.session.query(
+            Module.id,
+            Module.title,
+            Module.slug,
+            Module.sort_order,
+            func.count(Lesson.id).label("total_lessons"),
+        )
+        .outerjoin(Lesson, db.and_(Lesson.module_id == Module.id, Lesson.is_published.is_(True)))
+        .filter(Module.is_published.is_(True))
+        .group_by(Module.id, Module.title, Module.slug, Module.sort_order)
+        .order_by(Module.sort_order)
         .all()
     )
 
-    health, health_note = compute_health(events)
-    equity = _parse_equity_from_log()
-    log_tail = _read_log_tail(50)
+    module_stats = []
+    for m in modules:
+        completions = (
+            db.session.query(func.count(UserProgress.id))
+            .join(Lesson, UserProgress.lesson_id == Lesson.id)
+            .filter(
+                Lesson.module_id == m.id,
+                UserProgress.status == "completed",
+            )
+            .scalar() or 0
+        )
+        completions_today = (
+            db.session.query(func.count(UserProgress.id))
+            .join(Lesson, UserProgress.lesson_id == Lesson.id)
+            .filter(
+                Lesson.module_id == m.id,
+                UserProgress.status == "completed",
+                UserProgress.completed_at >= today_start,
+            )
+            .scalar() or 0
+        )
+        module_stats.append({
+            "title": m.title,
+            "slug": m.slug,
+            "total_lessons": m.total_lessons,
+            "total_completions": completions,
+            "completions_today": completions_today,
+        })
 
-    last_event = events[0] if events else None
-    last_scan = None
-    for e in events:
-        if e.event == "scan":
-            last_scan = e
-            break
-
-    events_today = len(events)
-    errors_today = sum(1 for e in events if e.event == "error")
-
-    positions = {}
-    for e in reversed(events):
-        sym = e.symbol
-        if sym not in SYMBOLS:
-            continue
-        if e.event in ("position_opened", "position") and e.status in ("filled", "active"):
-            positions[sym] = {
-                "side": e.side or "unknown",
-                "price": e.price,
-                "qty": e.qty,
-                "status": e.status,
-                "timestamp": e.timestamp.isoformat() if e.timestamp else None,
-            }
-        elif e.event == "exit" and sym in positions:
-            del positions[sym]
-
-    symbols = {}
-    for sym in SYMBOLS:
-        sym_events = [e for e in events if e.symbol == sym]
-        last_sym_event = sym_events[0] if sym_events else None
-        pos = positions.get(sym)
-
-        if pos:
-            status = f"{pos['side']}_active"
-        elif last_sym_event and last_sym_event.event == "error":
-            status = "error"
-        elif last_sym_event and last_sym_event.event == "skip":
-            status = "skipped"
-        elif last_sym_event and last_sym_event.event == "scan":
-            status = "scanning"
-        else:
-            status = "flat"
-
-        symbols[sym] = {
-            "status": status,
-            "last_event": last_sym_event.event if last_sym_event else None,
-            "last_time": last_sym_event.timestamp.isoformat() if last_sym_event and last_sym_event.timestamp else None,
-            "position": pos,
-        }
-
-    return jsonify({
-        "status": health,
-        "status_note": health_note,
-        "market_state": "open" if market_open_state(now) else "closed",
-        "equity": equity,
-        "events_today": events_today,
-        "errors_today": errors_today,
-        "active_positions": len(positions),
-        "last_event_time": last_event.timestamp.isoformat() if last_event else None,
-        "last_scan_time": last_scan.timestamp.isoformat() if last_scan else None,
-        "recent_events": [
-            {
-                "timestamp": e.timestamp.isoformat() if e.timestamp else None,
-                "event": e.event,
-                "symbol": e.symbol,
-                "side": e.side,
-                "price": e.price,
-                "qty": e.qty,
-                "status": e.status,
-                "message": e.message,
-            }
-            for e in events[:20]
-        ],
-        "symbols": symbols,
-        "log_tail": log_tail,
-    })
+    return jsonify({"modules": module_stats})

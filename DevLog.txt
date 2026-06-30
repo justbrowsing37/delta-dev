@@ -317,5 +317,67 @@ While admin.py was open, added missing curriculum visibility:
 
 
 ────────────────────────────────────────────────────────────────────────────────
+2026-06-29 — Infrastructure Audit & Pre-Launch DB Checklist
+────────────────────────────────────────────────────────────────────────────────
+
+Audited the full production infrastructure and confirmed current state of all
+hosted services. Cleaned the Supabase waitlist and documented what needs to
+happen before Jan 1 launch.
+
+─── Infrastructure State ──────────────────────────────────────────────────────
+
+    • Cloudflare Pages — hosts the static frontend. Running.
+    • Render — hosts the Flask app (dev server). Running and DB connected.
+    • Supabase (DeltaOne-Waitlist, us-east-1) — waitlist-only DB. Active.
+      Only one table exists: public.waitlist. No platform schema yet.
+    • Production DB connection: Supabase DATABASE_URL is not yet set on
+      the prod Flask server. Platform tables don't exist in Supabase yet.
+      This is expected — migration happens pre-launch.
+
+─── Waitlist Cleanup ──────────────────────────────────────────────────────────
+
+Scanned the waitlist table. Found 4 rows — 2 real signups, 2 test entries:
+
+    • test@fakemail.com — test entry, deleted
+    • bhanusugguna@gmail.clm — typo from animation test, deleted
+    • sabahcake101@gmail.com — real signup, kept
+    • anousupriya@gmail.com — real signup, kept
+
+Waitlist now has 2 verified founding users.
+
+─── Founding User Launch Plan ─────────────────────────────────────────────────
+
+Decided on the waitlist-to-user conversion flow for launch day:
+
+    • A one-time migration script reads both waitlist emails, generates a
+      random password for each (e.g. delta-x7k2-mq9p), hashes it, and
+      creates a User record in the platform DB
+    • Each founding user receives one transactional email with their login
+      credentials (email + generated password)
+    • No forced reset flow — they log in normally and can change their
+      password anytime via the standard settings page
+    • New users signing up post-launch go through the normal signup form
+      with no special handling
+    • Requires a transactional email sender (SendGrid, Resend, or SMTP)
+      to be configured before launch
+
+─── Pre-Launch DB Checklist ───────────────────────────────────────────────────
+
+To be completed in the weeks before Jan 1 launch:
+
+    [ ] Run all Alembic migrations against Supabase to create the full
+        platform schema (users, lessons, modules, progress, ai_interactions,
+        sessions)
+    [ ] Write and run Alembic migration to drop the bot_events table
+    [ ] Point Render prod service DATABASE_URL to Supabase connection string
+    [ ] Seed curriculum data (modules + lessons) into Supabase
+    [ ] Set up transactional email sender (SendGrid / Resend / SMTP)
+    [ ] Run founding user migration script — generate credentials and
+        email sabahcake101@gmail.com and anousupriya@gmail.com
+    [ ] Smoke test: sign up as a new user on prod, complete a lesson,
+        run an AI query end-to-end
+
+
+────────────────────────────────────────────────────────────────────────────────
 END OF DEVELOPMENT LOG
 ────────────────────────────────────────────────────────────────────────────────

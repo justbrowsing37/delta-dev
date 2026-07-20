@@ -5,8 +5,9 @@ from app.models.lesson import Lesson
 from app.models.progress import UserProgress
 from app.models.waitlist_entry import WaitlistEntry
 from app.models.ai_interaction import AiInteraction
+from app.models.feedback import Feedback
 
 __all__ = [
     "User", "Session", "Module", "Lesson", "UserProgress",
-    "WaitlistEntry", "AiInteraction",
+    "WaitlistEntry", "AiInteraction", "Feedback",
 ]

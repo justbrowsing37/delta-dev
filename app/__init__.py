@@ -1,8 +1,19 @@
 import os
+import re
 import click
 from flask import Flask, render_template
 from app.config import Config
 from app.extensions import db, migrate, login_manager, csrf
+
+try:
+    import markdown as md_lib
+    def _md_filter(text):
+        return md_lib.markdown(text or "", extensions=["nl2br", "tables"])
+except ImportError:
+    def _md_filter(text):
+        # Fallback: minimal HTML escape + newline-to-br
+        import html
+        return html.escape(text or "").replace("\n", "<br>")
 
 
 def create_app(config_class=Config) -> Flask:
@@ -26,12 +37,15 @@ def create_app(config_class=Config) -> Flask:
     from app.routes.api import api_bp
     from app.routes.workspace import workspace_bp
     from app.routes.onboarding import onboarding_bp
+    from app.routes.module import module_bp
     csrf.exempt(api_bp)
     csrf.exempt(workspace_bp)
     csrf.exempt(onboarding_bp)
+    csrf.exempt(module_bp)  # module feedback API uses JSON, not WTF forms
 
-    # Jinja2 globals
+    # Jinja2 globals and filters
     app.jinja_env.globals['enumerate'] = enumerate
+    app.jinja_env.filters['markdown'] = _md_filter
 
     @app.cli.command("seed-users")
     def seed_users():
@@ -74,9 +88,9 @@ def create_app(config_class=Config) -> Flask:
 
     @app.shell_context_processor
     def shell_context():
-        from app.models import User, Module, Lesson, UserProgress, WaitlistEntry, AiInteraction
+        from app.models import User, Module, Lesson, UserProgress, WaitlistEntry, AiInteraction, Feedback
         return {"db": db, "User": User, "Module": Module, "Lesson": Lesson,
                 "UserProgress": UserProgress, "WaitlistEntry": WaitlistEntry,
-                "AiInteraction": AiInteraction}
+                "AiInteraction": AiInteraction, "Feedback": Feedback}
 
     return app

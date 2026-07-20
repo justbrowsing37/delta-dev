@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delta One — Learn Markets. Trade with Conviction.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- MARQUEE BANNER -->
+  <div class="marquee-bar">
+    <div class="marquee-track">
+      <span>// Waitlist Open &nbsp;&nbsp;&middot;&nbsp;&nbsp; Launching January 1, 2027 &nbsp;&nbsp;&middot;&nbsp;&nbsp; Delta Core — Free Forever &nbsp;&nbsp;&middot;&nbsp;&nbsp; Delta Pro — Algo Engine &nbsp;&nbsp;&middot;&nbsp;&nbsp; Built for students &nbsp;&nbsp;&middot;&nbsp;&nbsp; No credit card required &nbsp;&nbsp;&middot;&nbsp;&nbsp;</span>
+      <span>// Waitlist Open &nbsp;&nbsp;&middot;&nbsp;&nbsp; Launching January 1, 2027 &nbsp;&nbsp;&middot;&nbsp;&nbsp; Delta Core — Free Forever &nbsp;&nbsp;&middot;&nbsp;&nbsp; Delta Pro — Algo Engine &nbsp;&nbsp;&middot;&nbsp;&nbsp; Built for students &nbsp;&nbsp;&middot;&nbsp;&nbsp; No credit card required &nbsp;&nbsp;&middot;&nbsp;&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <span class="logo">Delta One</span>
+    <span class="nav-status mono">// Waitlist open &middot; January 1, 2027</span>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-label mono">delta.one</div>
+      <h1>
+        <span id="line-1"></span><span id="cursor-1" class="cursor">|</span><br>
+        <span id="line-2" class="line-2-wrap"></span><span id="cursor-2" class="cursor hidden">|</span>
+      </h1>
+      <p class="subheadline">Delta One is a fintech education platform built for students who are tired of market noise. Structured learning from first principles. An algo trading engine underneath. Free to learn. Built to last.</p>
+
+      <div class="waitlist-form">
+        <p class="form-label mono">// Be first in when we launch January 1, 2027.</p>
+        <form id="signup-form">
+          <input type="email" id="email-input" placeholder="your@email.com" required />
+          <button type="submit" id="submit-btn">Join Waitlist</button>
+        </form>
+        <p id="form-message" class="form-message hidden"></p>
+      </div>
+
+      <div class="countdown mono">
+        <span id="days-count">—</span> days until launch
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats reveal">
+    <div class="section-label mono">platform.stats</div>
+    <div class="stats-grid">
+      <div class="stat-block">
+        <div class="stat-number">65+</div>
+        <div class="stat-title">Curriculum Items</div>
+        <div class="stat-sub mono">// Lessons, activities, and checks<br>built from first principles</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">7</div>
+        <div class="stat-title">Modules</div>
+        <div class="stat-sub mono">// Foundation to path selection<br>every step earns the next</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-number">100%</div>
+        <div class="stat-title">Free Forever</div>
+        <div class="stat-sub mono">// Delta Core has no paywall.<br>Learning shouldn’t cost entry.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section class="modules reveal">
+    <div class="section-label mono">platform.modules</div>
+    <div class="modules-grid">
+      <div class="module-card">
+        <div class="module-tag mono">delta.core — free forever</div>
+        <h2>The learning<br>terminal.</h2>
+        <p>Build market structure from first principles. Understand why prices move — not just when. Every module earns the next.</p>
+        <ul>
+          <li>7 modules, progressive and hard-gated</li>
+          <li>Lessons, activities, and module checks</li>
+          <li>Choose your path after the foundation — ETF, swing, or intraday</li>
+          <li>AI assistant that breaks concepts into smaller problems</li>
+          <li>Macro and news context wired to your learning state</li>
+        </ul>
+      </div>
+      <div class="module-card module-card--pro">
+        <div class="module-tag mono">delta.pro — algo engine</div>
+        <h2>The trading<br>engine.</h2>
+        <p>Momentum-signal algo running on what you’ve learned. You understand the logic because you built the knowledge base.</p>
+        <ul>
+          <li>Algo bot on top of your education progress</li>
+          <li>Live signals with explainability layer</li>
+          <li>Full backtest suite — inspect every trade</li>
+          <li>Portfolio tracking and performance analytics</li>
+          <li>Synchronized workspace: learn, track, and trade in one terminal</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="reveal">
+    <span class="footer-logo">Delta One</span>
+    <div class="footer-links">
+      <a href="https://github.com/justbrowsing37/DeltaOne" target="_blank">GitHub</a>
+      <a href="mailto:hello@deltaone.app">Contact</a>
+      <a href="https://www.linkedin.com/company/thedeltaone" target="_blank">LinkedIn</a>
+      <a href="https://instagram.com/thedeltaone" target="_blank">Instagram</a>
+    </div>
+    <p class="footer-disclaimer mono">// Delta One is a fintech education platform. Delta One does not provide financial advice. All trading involves risk.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

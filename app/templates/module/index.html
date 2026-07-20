@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Module 0 — What is the Market? | Delta One{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='module.css') }}" />
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="mod-shell">
+
+  <!-- TOP NAR -->
+  <header class="mod-header">
+    <a href="/" class="mod-logo">
+      <div class="logo-mark">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <span>DELTA ONE</span>
+    </a>
+    <div class="mod-header-center">
+      <span class="mod-badge">MODULE 0</span>
+      <span class="mod-header-title">What is the Market?</span>
+    </div>
+    <div class="mod-header-right">
+      <span class="mod-progress-text">{{ completed_count }} / {{ total }} complete</span>
+      <a href="{{ url_for('auth.logout') }}" class="mod-logout">log out</a>
+    </div>
+  </header>
+
+  <!-- PROGRESS BAR -->
+  <div class="mod-progress-bar-wrap">
+    <div class="mod-progress-bar-fill" style="width: {{ ((completed_count / total) * 100) | round(1) }}%"></div>
+  </div>
+
+  <!-- HERO -->
+  <section class="mod-index-hero">
+    <div class="mod-index-hero-inner">
+      <div class="mod-badge-lg">// early access</div>
+      <h1>Module 0: <span class="accent">What is the Market?</span></h1>
+      <p class="mod-index-sub">10 items. Roughly 40 minutes. Work through them in order — each one builds on the last.</p>
+      <a href="{{ url_for('module.item', item_id=resume_id) }}" class="mod-cta-btn">
+        {% if completed_count == 0 %}Start Module 0{% elif completed_count == total %}Review Module 0{% else %}Continue — {{ resume_id }}{% endif %}
+      </a>
+    </div>
+  </section>
+
+  <!-- SEQUENCE -->
+  <section class="mod-sequence-section">
+    <div class="mod-sequence-header">
+      <span class="section-label">module.0.sequence</span>
+    </div>
+    <div class="mod-sequence-list">
+      {% for item in items %}
+      <a
+        href="{% if item.is_unlocked %}{{ url_for('module.item', item_id=item.id) }}{% else %}#{% endif %}"
+        class="mod-seq-item {% if item.is_completed %}is-completed{% elif item.is_unlocked %}is-active{% else %}is-locked{% endif %}"
+        {% if not item.is_unlocked %}aria-disabled="true" tabindex="-1"{% endif %}
+      >
+        <div class="mod-seq-index">{{ loop.index | string | zfill(2) }}</div>
+        <div class="mod-seq-body">
+          <div class="mod-seq-id">{{ item.id }}</div>
+          <div class="mod-seq-title">{{ item.title }}</div>
+        </div>
+        <div class="mod-seq-type-badge mod-type-{{ item.type }}">{{ item.type }}</div>
+        <div class="mod-seq-status">
+          {% if item.is_completed %}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {% elif item.is_unlocked %}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#4ade80" stroke-width="1.5"/></svg>
+          {% else %}
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="5" y="7" width="6" height="6" rx="1" stroke="#374151" stroke-width="1.5"/><path d="M6 7V5a2 2 0 014 0v2" stroke="#374151" stroke-width="1.5"/></svg>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+{% endblock %}

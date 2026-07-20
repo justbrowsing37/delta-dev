@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Module 0 Check | Delta One{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='module.css') }}" />
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="mod-shell">
+
+  <!-- HEADER -->
+  <header class="mod-header">
+    <a href="{{ url_for('module.index') }}" class="mod-logo">
+      <div class="logo-mark">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <span>M0</span>
+    </a>
+    <div class="mod-header-center">
+      <span class="mod-badge">0.C</span>
+      <span class="mod-header-title">Module 0 Check</span>
+    </div>
+    <div class="mod-header-right">
+      <span class="mod-progress-text">{{ nav.position }} of {{ nav.total }}</span>
+      <a href="{{ url_for('auth.logout') }}" class="mod-logout">log out</a>
+    </div>
+  </header>
+
+  <div class="mod-progress-bar-wrap">
+    <div class="mod-progress-bar-fill" style="width: 100%"></div>
+  </div>
+
+  <main class="mod-content">
+    <div class="mod-content-inner">
+
+      <div class="mod-content-meta">
+        <span class="mod-type-badge mod-type-check">check</span>
+        <span class="mod-content-id">0.C</span>
+      </div>
+
+      <h1 class="mod-content-title">{{ content.title }}</h1>
+
+      {% for section_name, section_body in content.sections.items() %}
+        {% if section_name != "Before you move on" %}
+          <div class="mod-block">
+            <div class="mod-block-label">// {{ section_name | lower }}</div>
+            <div class="mod-block-body">{{ section_body | markdown | safe }}</div>
+          </div>
+        {% endif %}
+      {% endfor %}
+
+      <!-- MODULE 1 COMING SOON -->
+      <div class="mod-callout mod-callout-coming">
+        <div class="mod-callout-label">module 1</div>
+        <div class="mod-callout-text">Coming soon — you'll go deeper on company financials, valuation, and how to build your analytical framework as a trader.</div>
+      </div>
+
+      <!-- FEEDBACK + MODULE 1 INTEREST -->
+      <div class="mod-feedback" id="feedback-block">
+        <div class="mod-feedback-question">Did this module make sense overall?</div>
+        <div class="mod-feedback-btns">
+          <button class="mod-fb-btn {% if existing_feedback and existing_feedback.understood %}is-selected{% endif %}" data-val="true" id="fb-yes">Yes</button>
+          <button class="mod-fb-btn {% if existing_feedback and not existing_feedback.understood %}is-selected{% endif %}" data-val="false" id="fb-no">No</button>
+        </div>
+        <textarea
+          id="fb-comment"
+          class="mod-fb-comment"
+          placeholder="Any final thoughts? (optional)"
+          maxlength="500"
+        >{{ existing_feedback.comment if existing_feedback and existing_feedback.comment else '' }}</textarea>
+
+        <div class="mod-feedback-question" style="margin-top:1.5rem">Want to keep going with Module 1 when it's ready?</div>
+        <div class="mod-feedback-btns">
+          <button class="mod-fb-btn {% if existing_feedback and existing_feedback.want_module_1 %}is-selected{% endif %}" data-group="m1" data-val="true" id="m1-yes">Yes — notify me</button>
+          <button class="mod-fb-btn {% if existing_feedback and existing_feedback.want_module_1 == false %}is-selected{% endif %}" data-group="m1" data-val="false" id="m1-no">No thanks</button>
+        </div>
+
+        <button class="mod-fb-submit" id="fb-submit" {% if already_completed %}disabled{% endif %}>
+          {% if already_completed %}Module 0 Complete ✓{% else %}Submit & Finish Module 0{% endif %}
+        </button>
+        <div class="mod-fb-msg" id="fb-msg"></div>
+      </div>
+
+      <!-- DONE STATE -->
+      {% if already_completed %}
+      <div class="mod-done-state">
+        <div class="mod-done-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="15" stroke="#4ade80" stroke-width="1.5"/><path d="M10 16l4 4 8-8" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="mod-done-title">Module 0 Complete</div>
+        <div class="mod-done-sub">You built the foundation. Module 1 is in the pipeline.</div>
+        <a href="{{ url_for('module.index') }}" class="mod-cta-btn" style="margin-top:1.5rem">Back to Module Overview</a>
+      </div>
+      {% endif %}
+
+    </div>
+  </main>
+
+  <nav class="mod-bottom-nav">
+    {% if nav.prev %}
+      <a href="{{ url_for('module.item', item_id=nav.prev.id) }}" class="mod-nav-btn mod-nav-prev">
+        ← {{ nav.prev.title }}
+      </a>
+    {% else %}
+      <div></div>
+    {% endif %}
+  </nav>
+
+</div>
+
+{% block scripts %}
+<script>
+const CONTENT_ID = '0.C';
+const ALREADY_DONE = {{ already_completed | tojson }};
+
+let selectedVal = null;
+let wantM1 = null;
+
+document.querySelectorAll('.mod-fb-btn').forEach(btn => {
+  if (!btn.dataset.group && btn.classList.contains('is-selected')) selectedVal = btn.dataset.val === 'true';
+  if (btn.dataset.group === 'm1' && btn.classList.contains('is-selected')) wantM1 = btn.dataset.val === 'true';
+
+  btn.addEventListener('click', () => {
+    const group = btn.dataset.group || 'main';
+    document.querySelectorAll(`.mod-fb-btn[data-group="${group}"], .mod-fb-btn:not([data-group])`)
+      .forEach(b => { if ((b.dataset.group || 'main') === group) b.classList.remove('is-selected'); });
+    btn.classList.add('is-selected');
+    if (!btn.dataset.group) selectedVal = btn.dataset.val === 'true';
+    else wantM1 = btn.dataset.val === 'true';
+  });
+});
+
+document.getElementById('fb-submit').addEventListener('click', async () => {
+  if (ALREADY_DONE) return;
+  if (selectedVal === null) { showMsg('Please answer both questions above.', 'error'); return; }
+  const comment = document.getElementById('fb-comment').value.trim();
+  const btn = document.getElementById('fb-submit');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const res = await fetch('/module/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content_id: CONTENT_ID, understood: selectedVal, comment, want_module_1: wantM1 })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      btn.textContent = 'Module 0 Complete ✓';
+      document.querySelector('.mod-done-state') && document.querySelector('.mod-done-state').classList.add('visible');
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Submit & Finish Module 0';
+      showMsg(data.error || 'Something went wrong.', 'error');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Submit & Finish Module 0';
+    showMsg('Network error — try again.', 'error');
+  }
+});
+
+function showMsg(text, type) {
+  const el = document.getElementById('fb-msg');
+  el.textContent = text;
+  el.className = 'mod-fb-msg ' + type;
+}
+</script>
+{% endblock %}
+{% endblock %}

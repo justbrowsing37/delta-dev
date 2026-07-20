@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{{ content.title }} | Delta One{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='module.css') }}" />
+{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="mod-shell">
+
+  <!-- HEADER -->
+  <header class="mod-header">
+    <a href="{{ url_for('module.index') }}" class="mod-logo">
+      <div class="logo-mark">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 1L15 14H1L8 1Z" stroke="#4ade80" stroke-width="1.5" fill="none"/></svg>
+      </div>
+      <span>M0</span>
+    </a>
+    <div class="mod-header-center">
+      <span class="mod-badge">{{ content.id }}</span>
+      <span class="mod-header-title">{{ content.title }}</span>
+    </div>
+    <div class="mod-header-right">
+      <span class="mod-progress-text">{{ nav.position }} of {{ nav.total }}</span>
+      <a href="{{ url_for('auth.logout') }}" class="mod-logout">log out</a>
+    </div>
+  </header>
+
+  <!-- PROGRESS BAR -->
+  <div class="mod-progress-bar-wrap">
+    <div class="mod-progress-bar-fill" style="width: {{ ((nav.position / nav.total) * 100) | round(1) }}%"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <main class="mod-content">
+    <div class="mod-content-inner">
+
+      <!-- TYPE BADGE -->
+      <div class="mod-content-meta">
+        <span class="mod-type-badge mod-type-{{ content.type }}">{{ content.type }}</span>
+        <span class="mod-content-id">{{ content.id }}</span>
+      </div>
+
+      <h1 class="mod-content-title">{{ content.title }}</h1>
+
+      {% if content.type == "lesson" %}
+
+        <!-- LESSON SECTIONS -->
+        {% set section_order = ["The idea in one sentence", "Why this matters", "How it works", "What this looks like in the market", "Common mistake", "Next"] %}
+
+        {% for section_name in section_order %}
+          {% if content.sections.get(section_name) %}
+            {% if section_name == "Common mistake" %}
+              <div class="mod-block mod-block-mistake">
+                <div class="mod-block-label">// common mistake</div>
+                <div class="mod-block-body">{{ content.sections[section_name] | markdown | safe }}</div>
+              </div>
+            {% elif section_name == "The idea in one sentence" %}
+              <div class="mod-block mod-block-lead">
+                <div class="mod-block-body lead-text">{{ content.sections[section_name] }}</div>
+              </div>
+            {% elif section_name == "Next" %}
+              {# Skip — we handle nav separately #}
+            {% else %}
+              <div class="mod-block">
+                <div class="mod-block-label">// {{ section_name | lower }}</div>
+                <div class="mod-block-body">{{ content.sections[section_name] | markdown | safe }}</div>
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        <!-- KEY CONCEPT CALLOUT -->
+        {% if content.key_concept %}
+          <div class="mod-callout">
+            <div class="mod-callout-label">key concept</div>
+            <div class="mod-callout-text">{{ content.key_concept }}</div>
+          </div>
+        {% endif %}
+
+        <!-- REMAINING SECTIONS NOT IN ORDER LIST -->
+        {% for section_name, section_body in content.sections.items() %}
+          {% if section_name not in section_order %}
+            <div class="mod-block">
+              <div class="mod-block-label">// {{ section_name | lower }}</div>
+              <div class="mod-block-body">{{ section_body | markdown | safe }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+      {% elif content.type == "activity" %}
+
+        <!-- ACTIVITY SECTIONS -->
+        {% set activity_order = ["What you're doing", "What you need", "Your task", "What to look for", "Connects to"] %}
+
+        {% for section_name in activity_order %}
+          {% if content.sections.get(section_name) %}
+            {% if section_name == "What you're doing" %}
+              <div class="mod-block mod-block-lead">
+                <div class="mod-block-body lead-text">{{ content.sections[section_name] }}</div>
+              </div>
+            {% elif section_name == "Your task" %}
+              <div class="mod-block mod-block-task">
+                <div class="mod-block-label">// your task</div>
+                <div class="mod-block-body">{{ content.sections[section_name] | markdown | safe }}</div>
+              </div>
+            {% elif section_name == "Connects to" %}
+              <div class="mod-block mod-block-connects">
+                <div class="mod-block-label">// connects to</div>
+                <div class="mod-block-body">{{ content.sections[section_name] | markdown | safe }}</div>
+              </div>
+            {% else %}
+              <div class="mod-block">
+                <div class="mod-block-label">// {{ section_name | lower }}</div>
+                <div class="mod-block-body">{{ content.sections[section_name] | markdown | safe }}</div>
+              </div>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        <!-- REMAINING SECTIONS -->
+        {% for section_name, section_body in content.sections.items() %}
+          {% if section_name not in activity_order %}
+            <div class="mod-block">
+              <div class="mod-block-label">// {{ section_name | lower }}</div>
+              <div class="mod-block-body">{{ section_body | markdown | safe }}</div>
+            </div>
+          {% endif %}
+        {% endfor %}
+
+      {% endif %}
+
+      <!-- FEEDBACK BLOCK -->
+      <div class="mod-feedback" id="feedback-block">
+        <div class="mod-feedback-question">Did this make sense?</div>
+        <div class="mod-feedback-btns">
+          <button class="mod-fb-btn {% if existing_feedback and existing_feedback.understood %}is-selected{% endif %}" data-val="true" id="fb-yes">Yes</button>
+          <button class="mod-fb-btn {% if existing_feedback and not existing_feedback.understood %}is-selected{% endif %}" data-val="false" id="fb-no">No</button>
+        </div>
+        <textarea
+          id="fb-comment"
+          class="mod-fb-comment"
+          placeholder="Anything confusing? Let us know (optional)"
+          maxlength="500"
+        >{{ existing_feedback.comment if existing_feedback and existing_feedback.comment else '' }}</textarea>
+        <button class="mod-fb-submit" id="fb-submit" {% if already_completed %}disabled{% endif %}>
+          {% if already_completed %}Completed ✓{% else %}Mark Complete & Continue{% endif %}
+        </button>
+        <div class="mod-fb-msg" id="fb-msg"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="mod-bottom-nav">
+    {% if nav.prev %}
+      <a href="{{ url_for('module.item', item_id=nav.prev.id) }}" class="mod-nav-btn mod-nav-prev">
+        ← {{ nav.prev.title }}
+      </a>
+    {% else %}
+      <div></div>
+    {% endif %}
+    {% if nav.next and already_completed %}
+      <a href="{{ url_for('module.item', item_id=nav.next.id) }}" class="mod-nav-btn mod-nav-next">
+        {{ nav.next.title }} →
+      </a>
+    {% endif %}
+  </nav>
+
+</div>
+
+{% block scripts %}
+<script>
+const CONTENT_ID = {{ content.id | tojson }};
+const NEXT_URL   = {{ url_for('module.item', item_id=nav.next.id) | tojson if nav.next else 'null' }};
+const ALREADY_DONE = {{ already_completed | tojson }};
+
+let selectedVal = null;
+
+document.querySelectorAll('.mod-fb-btn').forEach(btn => {
+  if (btn.classList.contains('is-selected')) {
+    selectedVal = btn.dataset.val === 'true';
+  }
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mod-fb-btn').forEach(b => b.classList.remove('is-selected'));
+    btn.classList.add('is-selected');
+    selectedVal = btn.dataset.val === 'true';
+  });
+});
+
+document.getElementById('fb-submit').addEventListener('click', async () => {
+  if (ALREADY_DONE) return;
+  if (selectedVal === null) {
+    showMsg('Please select Yes or No first.', 'error');
+    return;
+  }
+  const comment = document.getElementById('fb-comment').value.trim();
+  const btn = document.getElementById('fb-submit');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+
+  try {
+    const res = await fetch('/module/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ content_id: CONTENT_ID, understood: selectedVal, comment })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      btn.textContent = 'Saved ✓';
+      setTimeout(() => {
+        if (data.next_url) window.location.href = data.next_url;
+        else { btn.textContent = 'Completed ✓'; showMsg('Module 0 complete!', 'success'); }
+      }, 600);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Mark Complete & Continue';
+      showMsg(data.error || 'Something went wrong.', 'error');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Mark Complete & Continue';
+    showMsg('Network error — try again.', 'error');
+  }
+});
+
+function showMsg(text, type) {
+  const el = document.getElementById('fb-msg');
+  el.textContent = text;
+  el.className = 'mod-fb-msg ' + type;
+}
+</script>
+{% endblock %}
+{% endblock %}

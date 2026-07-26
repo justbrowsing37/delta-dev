@@ -17,3 +17,6 @@ terminal.txt
 data/
 .pytest_cache/
 .venv/
+*.db
+*.sqlite
+*.sqlite3

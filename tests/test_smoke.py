@@ -47,16 +47,15 @@ def test_blueprints_registered(app):
 
 
 def test_models_import():
-    from app.models import User, Session, Module, Lesson, UserProgress, BotEvent, WaitlistEntry, AiInteraction
-    assert all([User, Session, Module, Lesson, UserProgress, BotEvent, WaitlistEntry, AiInteraction])
+    from app.models import User, Session, Module, Lesson, UserProgress, WaitlistEntry, AiInteraction
+    assert all([User, Session, Module, Lesson, UserProgress, WaitlistEntry, AiInteraction])
 
 
 def test_services_import():
     from app.services.auth_service import AuthService
     from app.services.curriculum import CurriculumService
-    from app.services.signal_explainer import SignalExplainerService
     from app.services.ai_service import AiService
-    assert all([AuthService, CurriculumService, SignalExplainerService, AiService])
+    assert all([AuthService, CurriculumService, AiService])
 
 
 def test_routes_import():
@@ -99,7 +98,7 @@ def test_workspace_redirects_when_not_logged_in(client):
 
 
 def test_api_redirects_when_not_logged_in(client):
-    resp = client.get("/api/summary")
+    resp = client.get("/api/concepts")
     assert resp.status_code == 302
 
 
@@ -117,15 +116,6 @@ def test_user_model_creation(app):
         assert u.is_admin is False
         assert u.tier == "core"
         db.session.rollback()
-
-
-def test_sweep_modules_import():
-    from sweep_config import UNIVERSE, PAPER, MIN_RR, STOP_ATR_MULT, LOOP_INTERVAL_SEC
-    assert len(UNIVERSE) > 0
-    assert PAPER is True
-    assert MIN_RR >= 1.0
-    assert STOP_ATR_MULT > 0
-    assert LOOP_INTERVAL_SEC > 0
 
 
 def test_curriculum_service_supports_activity_items(app):
@@ -167,8 +157,3 @@ def test_curriculum_service_supports_activity_items(app):
         detail = CurriculumService.get_lesson("activity-module", "activity-one")
         assert detail["item_type"] == "activity"
         assert detail["connects_to"] == ["lesson-one"]
-
-
-def test_bot_logger_import():
-    import bot_logger
-    assert bot_logger is not None

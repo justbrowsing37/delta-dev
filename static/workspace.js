@@ -32,10 +32,25 @@
     if (content) content.addEventListener('scroll', updateReadProgress, { passive: true });
   })();
 
+  // In guided mode a single step can be short, so pure scroll-based progress
+  // barely moves (or jumps straight to 100%). Instead, treat the bar as
+  // "how far through the tour" — completed steps count fully, and the
+  // current step contributes its own scroll fraction on top, so the bar
+  // always advances meaningfully as you move through the lesson regardless
+  // of any one step's length. Read mode keeps plain whole-document scroll.
   function updateReadProgress() {
     if (!readBar || !content) return;
-    var max = content.scrollHeight - content.clientHeight;
-    var pct = max > 0 ? (content.scrollTop / max) * 100 : 0;
+    var pct;
+    if (guided.active && guided.steps.length) {
+      var total = guided.steps.length;
+      var base = guided.idx / total;
+      var max = content.scrollHeight - content.clientHeight;
+      var withinStep = max > 0 ? Math.min(content.scrollTop / max, 1) : 1;
+      pct = (base + withinStep * (1 / total)) * 100;
+    } else {
+      var docMax = content.scrollHeight - content.clientHeight;
+      pct = docMax > 0 ? (content.scrollTop / docMax) * 100 : 0;
+    }
     readBar.firstChild.style.width = pct + '%';
   }
 
@@ -510,6 +525,7 @@
       bindModeToggle();
       wsNav.module = null; // step nav owns the keyboard now
       renderGuidedStep();
+      updateReadProgress();
     } else {
       guided.active = false;
       var body = l.content_html || l.content || '<p>No content yet.</p>';

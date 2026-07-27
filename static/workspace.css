@@ -579,3 +579,60 @@
   .ws-main { grid-template-columns: 1fr; }
   .ws-left { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   GUIDED MODE — step-through "tour guide" lessons
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* guided | read toggle in the lesson header */
+.ws-mode-toggle { display: inline-flex; margin-left: auto; border: 1px solid var(--ws-border); }
+.ws-mode-toggle button {
+  padding: 4px 12px; font-family: inherit; font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-muted);
+  transition: background 0.15s, color 0.15s;
+}
+.ws-mode-toggle button:hover { color: var(--ws-text); }
+.ws-mode-toggle button.active { background: var(--ws-accent-dim); color: var(--ws-accent); }
+
+.ws-guided { display: flex; min-height: 56vh; }
+.ws-step { width: 100%; max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; }
+.ws-step .ws-lesson-body { max-width: none; margin: 0; }
+
+.ws-step-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+.ws-step-dots { display: flex; gap: 6px; }
+.ws-step-dot { width: 22px; height: 3px; background: var(--ws-border); transition: background 0.3s, box-shadow 0.3s; }
+.ws-step-dot.done { background: rgba(74,222,128,0.45); }
+.ws-step-dot.current { background: var(--ws-accent); box-shadow: 0 0 8px var(--ws-accent-glow); }
+.ws-step-count { font-size: 10px; letter-spacing: 0.1em; color: var(--ws-muted); }
+
+.ws-step-title {
+  font-size: 1.2rem; font-weight: 700; color: var(--ws-accent);
+  letter-spacing: 0.01em; margin: 0 0 16px; min-height: 1.35em;
+}
+.ws-step-title::before { content: '# '; color: #374151; }
+.ws-step.is-activity .ws-step-title { color: var(--ws-amber); }
+.tw-caret::after { content: '▋'; margin-left: 1px; animation: wsBlink 1s step-end infinite; }
+@keyframes wsBlink { 50% { opacity: 0; } }
+
+.ws-step-body.revealing { opacity: 0; }
+.ws-step-body.shown { animation: wsRise 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+.ws-guided-controls {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: auto; padding-top: 30px;
+}
+.ws-guided-finish { display: flex; gap: 10px; align-items: center; }
+.ws-guided-btn {
+  background: var(--ws-surface); border: 1px solid var(--ws-border); color: var(--ws-text);
+  font-family: inherit; font-size: 12px; padding: 10px 20px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.15s, opacity 0.15s;
+}
+.ws-guided-btn:hover { border-color: var(--ws-accent); color: var(--ws-accent); transform: translateY(-1px); }
+.ws-guided-btn:disabled { opacity: 0.35; cursor: default; transform: none; border-color: var(--ws-border); color: var(--ws-muted); }
+.ws-guided-btn.primary {
+  background: var(--ws-accent); color: #08130c; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; border-color: var(--ws-accent);
+}
+.ws-guided-btn.primary:hover { opacity: 0.9; color: #08130c; }
+
+@media (prefers-reduced-motion: reduce) { .tw-caret::after { display: none; } }

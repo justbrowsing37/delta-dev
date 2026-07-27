@@ -14,6 +14,40 @@
   var signalsFeed = document.getElementById('ws-signals-feed');
   var notesTA = document.getElementById('ws-notes-ta');
 
+  // nav targets for keyboard shortcuts (set while a lesson is open)
+  var wsNav = { module: null, prev: null, next: null };
+  var readBar = null;
+
+  // ─── Reading-progress bar (fills as you scroll a lesson) ──
+  (function initReadBar() {
+    var center = document.querySelector('.ws-center');
+    if (!center) return;
+    readBar = document.createElement('div');
+    readBar.className = 'ws-read-progress';
+    readBar.innerHTML = '<span></span>';
+    center.insertBefore(readBar, center.firstChild);
+    if (content) content.addEventListener('scroll', updateReadProgress, { passive: true });
+  })();
+
+  function updateReadProgress() {
+    if (!readBar || !content) return;
+    var max = content.scrollHeight - content.clientHeight;
+    var pct = max > 0 ? (content.scrollTop / max) * 100 : 0;
+    readBar.firstChild.style.width = pct + '%';
+  }
+
+  // ─── Keyboard nav: ←/k = prev, →/j = next (while in a lesson) ──
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    if (!wsNav.module) return;
+    if ((e.key === 'ArrowRight' || e.key === 'j') && wsNav.next) {
+      e.preventDefault(); window.wsOpenLesson(wsNav.module, wsNav.next);
+    } else if ((e.key === 'ArrowLeft' || e.key === 'k') && wsNav.prev) {
+      e.preventDefault(); window.wsOpenLesson(wsNav.module, wsNav.prev);
+    }
+  });
+
   // ─── Helpers ────────────────────────────────
   function escapeHtml(str) {
     var div = document.createElement('div');
@@ -62,6 +96,7 @@
 
   function showView(view) {
     currentView = view;
+    wsNav.module = null;
     document.querySelectorAll('.ws-nav-item').forEach(function (b) {
       b.classList.toggle('active', b.getAttribute('data-view') === view);
     });
@@ -191,7 +226,7 @@
 
       html += '<div class="ws-progress-row">'
         + '<span class="ws-progress-name">' + escapeHtml(m.title) + '</span>'
-        + '<span class="ws-progress-bar-mini"><span style="width:' + pct + '%"></span></span>'
+        + '<span class="ws-progress-bar-mini"><span data-pct="' + pct + '" style="width:0%"></span></span>'
         + '<span class="ws-progress-count">' + done + '/' + total + '</span>'
         + '</div>';
     });
@@ -200,11 +235,19 @@
     html += '<div class="ws-progress-sep"></div>'
       + '<div class="ws-progress-row ws-progress-total">'
       + '<span class="ws-progress-name">total</span>'
-      + '<span class="ws-progress-bar-mini"><span style="width:' + totalPct + '%"></span></span>'
+      + '<span class="ws-progress-bar-mini"><span data-pct="' + totalPct + '" style="width:0%"></span></span>'
       + '<span class="ws-progress-count">' + totalDone + '/' + totalLessons + '</span>'
       + '</div>';
 
     pb.innerHTML = html;
+
+    // animate the bars filling in
+    requestAnimationFrame(function () {
+      var bars = pb.querySelectorAll('.ws-progress-bar-mini > span');
+      for (var b = 0; b < bars.length; b++) {
+        bars[b].style.width = (bars[b].getAttribute('data-pct') || 0) + '%';
+      }
+    });
 
     // persist total for status strip
     lsSet('ws_lesson_progress', totalDone + '/' + totalLessons);
@@ -309,6 +352,7 @@
   }
 
   window.wsOpenModule = function (slug) {
+    wsNav.module = null;
     content.innerHTML = '<div class="ws-lesson-body"><em class="muted">loading...</em></div>';
     fetch('/workspace/api/modules/' + encodeURIComponent(slug))
       .then(function (r) { return r.json(); })
@@ -345,25 +389,41 @@
     fetch('/workspace/api/lessons/' + encodeURIComponent(moduleSlug) + '/' + encodeURIComponent(lessonSlug))
       .then(function (r) { return r.json(); })
       .then(function (l) {
-        var html = '<button class="ws-back-btn" onclick="wsOpenModule(\'' + moduleSlug + '\')">&larr; back</button>';
-        html += '<div class="ws-lesson-header"><h1>' + (l.title || '') + '</h1>';
-        html += '<div class="ws-lesson-estimate">' + (l.item_type || 'lesson').toUpperCase() + ' • ' + (l.estimated_minutes || '?') + ' min read</div></div>';
-        if (l.connects_to && l.connects_to.length) {
-          html += '<div class="ws-lesson-body"><p class="muted">Connects to: ' + escapeHtml(l.connects_to.join(', ')) + '</p></div>';
-        }
-        html += '<div class="ws-lesson-body">' + (l.content_html || l.content || '<p>No content yet.</p>') + '</div>';
-        html += '<div class="ws-lesson-footer">';
-        html += '<div class="ws-lesson-nav">';
-        if (l.prev_lesson_slug) html += '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.prev_lesson_slug + '\')">&larr; ' + (l.prev_lesson_title || 'Previous') + '</button>';
-        if (l.next_lesson_slug) html += '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.next_lesson_slug + '\')">' + (l.next_lesson_title || 'Next') + ' &rarr;</button>';
+        var isActivity = (l.item_type === 'activity');
+        var typeLabel = (l.item_type || 'lesson').toUpperCase();
+        var body = l.content_html || l.content || '<p>No content yet.</p>';
+
+        var html = '<button class="ws-back-btn" onclick="wsOpenModule(\'' + moduleSlug + '\')">&larr; back to module</button>';
+        html += '<div class="ws-lesson-header ws-anim">'
+          + '<div class="ws-lesson-kicker">'
+          + '<span class="ws-type-badge' + (isActivity ? ' activity' : '') + '">' + typeLabel + '</span>'
+          + '<span class="ws-lesson-mins">' + (l.estimated_minutes || '?') + ' min ' + (isActivity ? 'exercise' : 'read') + '</span>'
+          + '</div>'
+          + '<h1>' + escapeHtml(l.title || '') + '</h1>'
+          + '</div>';
+        html += '<div class="ws-lesson-body ws-anim' + (isActivity ? ' is-activity' : '') + '">' + body + '</div>';
+        html += '<div class="ws-lesson-footer ws-anim"><div class="ws-lesson-nav">';
+        html += l.prev_lesson_slug
+          ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.prev_lesson_slug + '\')">&larr; ' + escapeHtml(l.prev_lesson_title || 'Previous') + '</button>'
+          : '<span></span>';
+        html += l.next_lesson_slug
+          ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.next_lesson_slug + '\')">' + escapeHtml(l.next_lesson_title || 'Next') + ' &rarr;</button>'
+          : '<span></span>';
         html += '</div>';
-        if (!l.is_completed) {
-          html += '<button class="ws-btn-complete" id="ws-btn-mark-complete">mark complete</button>';
+        if (l.is_completed) {
+          html += '<button class="ws-btn-complete done" disabled>&checkmark; completed</button>';
         } else {
-          html += '<button class="ws-btn-complete" disabled>&checkmark; completed</button>';
+          html += '<button class="ws-btn-complete" id="ws-btn-mark-complete">mark complete</button>';
         }
-        html += '</div></div>';
+        html += '</div>';
         content.innerHTML = html;
+        content.scrollTop = 0;
+
+        // enable keyboard prev/next + reset the reading bar
+        wsNav.module = moduleSlug;
+        wsNav.prev = l.prev_lesson_slug || null;
+        wsNav.next = l.next_lesson_slug || null;
+        updateReadProgress();
 
         // track focus
         setFocus('lesson', moduleSlug + '/' + lessonSlug, l.title || lessonSlug);
@@ -378,7 +438,8 @@
             fetch('/workspace/api/lessons/' + encodeURIComponent(moduleSlug) + '/' + encodeURIComponent(lessonSlug) + '/complete', { method: 'POST' })
               .then(function (r) { return r.json(); })
               .then(function (res) {
-                if (res.ok) {
+                if (res && res.ok) {
+                  btn.classList.add('done');
                   btn.textContent = '\u2713 completed';
                 } else {
                   btn.disabled = false;

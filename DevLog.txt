@@ -552,5 +552,113 @@ launched with `--remote-debugging-port 9222` to actually connect.
 
 
 ────────────────────────────────────────────────────────────────────────────────
+2026-07-27 (cont'd) — Full-Curriculum Build: Planned, Paused Before Writing
+────────────────────────────────────────────────────────────────────────────────
+
+Same session, later the same day. Bhanu framed the real constraint: he's in
+Calgary Aug 24, then university — this month is the only stretch to build
+content before a Sept social/beta push. Asked to build out the entire
+remaining curriculum, in one pass, without the multi-round edit cycles
+Module 0 went through. This entry is a checkpoint — planning and two real
+decisions are done; no content has been written yet. Picking up tomorrow.
+
+─── Real scope, confirmed against docs/curriculum.txt ─────────────────────────
+
+96 content items across the full curriculum. Only Module 0's 9 are done —
+and even Module 0 is missing its own capstone check (0-check.md doesn't
+exist). Checked module-1, module-2, module-5, module-6, and stage-a directly:
+every single file is a ~110-120 word skeleton, one sentence per section —
+the exact "2-3 lines" problem from earlier today, just worse, across
+everything else.
+
+Exact remaining count = 88 items:
+    0-check.md (1)  +  Module 1 (9)  +  Module 2 (11)  +  Module 3 (9)
+    +  Module 4 (9)  +  Module 5 (9)  +  Module 6 (8)  +  Stage A (8)
+    +  Stage B (8)  +  Stage C (8)  +  Stage R (8)  =  88
+
+Bhanu's call when asked "Foundation only (47 items) vs. everything (all 96)":
+build everything.
+
+─── Decision 1 — brand conflict, resolved without stopping to ask ────────────
+
+docs/contributor-guide.md — the project's own canonical style guide, its
+most emphasized section — explicitly BANS NVDA and META as teaching examples
+("the learner doesn't know what a GPU is," "abstract business model, hard to
+explain why it moves") and mandates familiar brands instead: Starbucks,
+Nike, Apple, Uniqlo, McDonald's, eBay/StockX, Netflix. Module 0 (built
+earlier today) uses NVDA/META throughout and ignores this rule — but is also
+explicitly marked "complete, do not modify" in that same guide.
+
+Resolution: leave Module 0 exactly as-is (don't touch it, it's grandfathered
+and Bhanu already approved it). Write everything NEW — Modules 1-6, all
+Stages, and 0-check.md — using the contributor guide's approved brands, exact
+lesson/activity/check templates, 400-550 word lessons, and its tone rules
+(second person, active voice, no fluff openers, no hedging, no advice
+language, no fake hype, jargon defined on first use). This is the documented
+standard; module-0's NVDA/META approach is the "before" a future
+contributor should not replicate at scale.
+
+Exception: 0-check.md (Module 0's missing check) will still use NVDA/META,
+to stay consistent with the rest of the module it belongs to rather than
+switching brands mid-module for one file.
+
+─── Decision 2 — engineering gap found before any content could load ────────
+
+seeds/load_content.py's filename parser only matches the numeric
+lesson/activity pattern (X.Y[-A]-slug.md). Two filename shapes already exist
+on disk that it can't parse at all:
+    - module checks:      1-check.md, 2-check.md, ... 5-check.md, 6-check.md
+    - letter-based stage
+      lessons + checks:   A.1-slug.md ... R.8-slug.md, A-check.md, B-check.md,
+                           C-check.md  (Stage R has no check — it's reference-
+                           only, unlocked for everyone, per curriculum.txt)
+
+Writing 88 files against a loader that silently skips most of them would
+mean discovering the gap late. Needs fixing FIRST. Plan (not yet built):
+    - Generalize parse_filename() to a single regex set covering: numeric
+      lesson/activity (existing), numeric check (\d+-check.md), letter-stage
+      lesson ([A-Za-z]\.\d+-slug.md), letter-stage check ([A-Za-z]-check.md)
+    - Add item_type="check" (currently only "lesson"/"activity" exist);
+      give it a distinct badge color in workspace.css/js, not green or
+      amber — the curriculum spec explicitly calls module completion an
+      acknowledged "COMPLETION MOMENT," so a check should look different
+      from a normal lesson step
+    - Register MODULES entries for module-1..6 and stage-a..r (title, slug,
+      description, icon, sort_order) — currently only module-0 is registered
+
+─── State at pause ─────────────────────────────────────────────────────────────
+
+    - Branch content/full-curriculum created off feat/lesson-blocks,
+      currently checked out. Zero commits on it yet — clean, identical to
+      feat/lesson-blocks tip. Nothing written or broken.
+    - A 14-item task list exists in-session (loader engineering -> check
+      styling -> 0-check.md -> Module 1 -> ... -> Module 6 -> Stage A/B/C/R
+      -> load/verify/commit/push/PR/DevLog). None started except the loader
+      engineering task, which was about to begin (about to rewrite
+      seeds/load_content.py) when the session paused.
+    - The still-open 5-PR stack from earlier today (fix/app-boot ->
+      feat/run-module-0 -> feat/lesson-experience -> feat/guided-lessons ->
+      feat/lesson-blocks) is untouched by this — content/full-curriculum
+      branches off the tip of that stack, so it inherits everything but adds
+      nothing to those PRs.
+
+─── Resume-from-here checklist ─────────────────────────────────────────────────
+
+    [ ] On content/full-curriculum: rewrite seeds/load_content.py per
+        "Decision 2" above (parser + item_type="check" + MODULES registry
+        for all 11 remaining modules/stages)
+    [ ] Small workspace.css/js addition: distinct visual treatment for
+        item_type="check" guided steps
+    [ ] Write 0-check.md (NVDA/META, matches existing Module 0 voice)
+    [ ] Write Module 1 (9 items) -> reload local DB -> spot-check via API
+        (item count, word count, blocks present) before moving on
+    [ ] Repeat for Modules 2, 3, 4, 5, 6, then Stages A, B, C, R — same
+        pattern each time: write -> reload -> verify -> commit
+    [ ] Push, open one PR covering the whole curriculum build (stacked on
+        feat/lesson-blocks), run the full smoke suite one more time
+    [ ] Write the closing DevLog.txt entry for this arc once merged/landed
+
+
+────────────────────────────────────────────────────────────────────────────────
 END OF DEVELOPMENT LOG
 ────────────────────────────────────────────────────────────────────────────────

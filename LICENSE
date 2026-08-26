@@ -1,21 +1,27 @@
-MIT License
+Copyright (c) 2026 Bhanu Sugguna. All rights reserved.
 
-Copyright (c) 2026 justbrowsing37
+This repository — including the application source code and all curriculum
+content in content/ and docs/ — is proprietary and confidential.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+No licence, express or implied, is granted to any person to use, copy,
+modify, merge, publish, distribute, sublicense, or sell any part of this
+software or content, except under a separate written agreement signed by
+the copyright holder.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Access to this repository does not grant any rights beyond viewing it for
+the purpose of contributing to Delta One at the copyright holder's request.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+CONTRIBUTIONS
+
+By submitting any contribution to this repository — code, curriculum
+content, documentation, or otherwise — you assign all right, title and
+interest in that contribution to the copyright holder, and waive any moral
+rights in it to the extent permitted by law. If you cannot or do not wish to
+make that assignment, do not submit contributions.
+
+PRIOR LICENCE
+
+This repository was previously distributed under the MIT License. The
+repository has been private since inception and no copy was distributed to
+any third party under those terms. This notice supersedes the MIT License
+for all purposes from the date of this file.

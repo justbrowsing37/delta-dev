@@ -57,6 +57,7 @@ DeltaOne/
 - `docs/technical-spec.md` — current application and content architecture.
 - `docs/curriculum.txt` — module and lesson/activity structure.
 - `docs/contributor-guide.md` — how collaborators should write and submit curriculum work.
+- `docs/workflow.md` — how work is prioritized, produced, reviewed, shipped, and validated.
 
 ## Contributor focus
 

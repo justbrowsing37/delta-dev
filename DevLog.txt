@@ -659,6 +659,23 @@ mean discovering the gap late. Needs fixing FIRST. Plan (not yet built):
     [ ] Write the closing DevLog.txt entry for this arc once merged/landed
 
 
+─── Operating workflow documented — August 26, 2026 ───────────────────────────
+
+Created docs/workflow.md as the working agreement for Delta One. It turns the
+business overview into a repeatable operating loop:
+
+    • Work is prioritized by dependency and learner value
+    • Content requires approved sources, human review, loading, and UX checks
+    • Engineering changes require focused validation and dependency-aware merges
+    • Each released slice collects per-item learner feedback
+    • Module and launch completion criteria are explicit
+    • The immediate sequence starts with the stacked PRs, loader, Module 0
+      check, positioning, feedback, source library, and then Modules 1 and 2
+
+The workflow keeps the January 1, 2027 launch curriculum-first and free-tier
+only. Payments, bot work, and AI remain outside the launch critical path.
+
+
 ────────────────────────────────────────────────────────────────────────────────
 END OF DEVELOPMENT LOG
 ────────────────────────────────────────────────────────────────────────────────

@@ -18,6 +18,9 @@
   var wsNav = { module: null, prev: null, next: null };
   var readBar = null;
 
+  // guided ("tour guide") lesson state
+  var guided = { active: false, steps: [], idx: 0, l: null, module: null, slug: null, typing: false, timer: null, skip: null };
+
   // ─── Reading-progress bar (fills as you scroll a lesson) ──
   (function initReadBar() {
     var center = document.querySelector('.ws-center');
@@ -29,10 +32,25 @@
     if (content) content.addEventListener('scroll', updateReadProgress, { passive: true });
   })();
 
+  // In guided mode a single step can be short, so pure scroll-based progress
+  // barely moves (or jumps straight to 100%). Instead, treat the bar as
+  // "how far through the tour" — completed steps count fully, and the
+  // current step contributes its own scroll fraction on top, so the bar
+  // always advances meaningfully as you move through the lesson regardless
+  // of any one step's length. Read mode keeps plain whole-document scroll.
   function updateReadProgress() {
     if (!readBar || !content) return;
-    var max = content.scrollHeight - content.clientHeight;
-    var pct = max > 0 ? (content.scrollTop / max) * 100 : 0;
+    var pct;
+    if (guided.active && guided.steps.length) {
+      var total = guided.steps.length;
+      var base = guided.idx / total;
+      var max = content.scrollHeight - content.clientHeight;
+      var withinStep = max > 0 ? Math.min(content.scrollTop / max, 1) : 1;
+      pct = (base + withinStep * (1 / total)) * 100;
+    } else {
+      var docMax = content.scrollHeight - content.clientHeight;
+      pct = docMax > 0 ? (content.scrollTop / docMax) * 100 : 0;
+    }
     readBar.firstChild.style.width = pct + '%';
   }
 
@@ -40,6 +58,12 @@
   document.addEventListener('keydown', function (e) {
     var t = e.target;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+    // guided mode: arrows/space step through the tour
+    if (guided.active) {
+      if (e.key === 'ArrowRight' || e.key === 'j' || e.key === ' ') { e.preventDefault(); guidedNext(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'k') { e.preventDefault(); guidedPrev(); }
+      return;
+    }
     if (!wsNav.module) return;
     if ((e.key === 'ArrowRight' || e.key === 'j') && wsNav.next) {
       e.preventDefault(); window.wsOpenLesson(wsNav.module, wsNav.next);
@@ -389,74 +413,374 @@
     fetch('/workspace/api/lessons/' + encodeURIComponent(moduleSlug) + '/' + encodeURIComponent(lessonSlug))
       .then(function (r) { return r.json(); })
       .then(function (l) {
-        var isActivity = (l.item_type === 'activity');
-        var typeLabel = (l.item_type || 'lesson').toUpperCase();
-        var body = l.content_html || l.content || '<p>No content yet.</p>';
-
-        var html = '<button class="ws-back-btn" onclick="wsOpenModule(\'' + moduleSlug + '\')">&larr; back to module</button>';
-        html += '<div class="ws-lesson-header ws-anim">'
-          + '<div class="ws-lesson-kicker">'
-          + '<span class="ws-type-badge' + (isActivity ? ' activity' : '') + '">' + typeLabel + '</span>'
-          + '<span class="ws-lesson-mins">' + (l.estimated_minutes || '?') + ' min ' + (isActivity ? 'exercise' : 'read') + '</span>'
-          + '</div>'
-          + '<h1>' + escapeHtml(l.title || '') + '</h1>'
-          + '</div>';
-        html += '<div class="ws-lesson-body ws-anim' + (isActivity ? ' is-activity' : '') + '">' + body + '</div>';
-        html += '<div class="ws-lesson-footer ws-anim"><div class="ws-lesson-nav">';
-        html += l.prev_lesson_slug
-          ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.prev_lesson_slug + '\')">&larr; ' + escapeHtml(l.prev_lesson_title || 'Previous') + '</button>'
-          : '<span></span>';
-        html += l.next_lesson_slug
-          ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.next_lesson_slug + '\')">' + escapeHtml(l.next_lesson_title || 'Next') + ' &rarr;</button>'
-          : '<span></span>';
-        html += '</div>';
-        if (l.is_completed) {
-          html += '<button class="ws-btn-complete done" disabled>&checkmark; completed</button>';
-        } else {
-          html += '<button class="ws-btn-complete" id="ws-btn-mark-complete">mark complete</button>';
-        }
-        html += '</div>';
-        content.innerHTML = html;
-        content.scrollTop = 0;
-
-        // enable keyboard prev/next + reset the reading bar
-        wsNav.module = moduleSlug;
-        wsNav.prev = l.prev_lesson_slug || null;
-        wsNav.next = l.next_lesson_slug || null;
-        updateReadProgress();
-
-        // track focus
+        renderLesson(l, moduleSlug, lessonSlug);
         setFocus('lesson', moduleSlug + '/' + lessonSlug, l.title || lessonSlug);
         lsSet('ws_last_lesson_title', l.title || lessonSlug);
         lsSet('ws_last_lesson_time', new Date().toISOString());
-
-        var btn = document.getElementById('ws-btn-mark-complete');
-        if (btn) {
-          btn.addEventListener('click', function () {
-            btn.disabled = true;
-            btn.textContent = 'completing...';
-            fetch('/workspace/api/lessons/' + encodeURIComponent(moduleSlug) + '/' + encodeURIComponent(lessonSlug) + '/complete', { method: 'POST' })
-              .then(function (r) { return r.json(); })
-              .then(function (res) {
-                if (res && res.ok) {
-                  btn.classList.add('done');
-                  btn.textContent = '\u2713 completed';
-                } else {
-                  btn.disabled = false;
-                  btn.textContent = 'mark complete';
-                }
-              })
-              .catch(function () {
-                btn.disabled = false;
-                btn.textContent = 'mark complete';
-              });
-          });
-        }
       })
       .catch(function () {
         content.innerHTML = '<div class="ws-lesson-body"><p class="muted">Lesson not found.</p></div>';
       });
   };
+
+  // ═══ Lesson rendering: guided ("tour") + read modes ═══
+
+  function lessonHeaderHtml(l, moduleSlug, mode) {
+    var isActivity = (l.item_type === 'activity');
+    var typeLabel = (l.item_type || 'lesson').toUpperCase();
+    return '<button class="ws-back-btn" onclick="wsOpenModule(\'' + moduleSlug + '\')">&larr; back to module</button>'
+      + '<div class="ws-lesson-header ws-anim">'
+      + '<div class="ws-lesson-kicker">'
+      + '<span class="ws-type-badge' + (isActivity ? ' activity' : '') + '">' + typeLabel + '</span>'
+      + '<span class="ws-lesson-mins">' + (l.estimated_minutes || '?') + ' min ' + (isActivity ? 'exercise' : 'read') + '</span>'
+      + '<span class="ws-mode-toggle" id="ws-mode-toggle">'
+      + '<button data-mode="guided" class="' + (mode === 'guided' ? 'active' : '') + '">guided</button>'
+      + '<button data-mode="read" class="' + (mode === 'read' ? 'active' : '') + '">read</button>'
+      + '</span>'
+      + '</div>'
+      + '<h1>' + escapeHtml(l.title || '') + '</h1>'
+      + '</div>';
+  }
+
+  function lessonFooterHtml(l, moduleSlug) {
+    var html = '<div class="ws-lesson-footer ws-anim"><div class="ws-lesson-nav">';
+    html += l.prev_lesson_slug
+      ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.prev_lesson_slug + '\')">&larr; ' + escapeHtml(l.prev_lesson_title || 'Previous') + '</button>'
+      : '<span></span>';
+    html += l.next_lesson_slug
+      ? '<button class="ws-lesson-nav-btn" onclick="wsOpenLesson(\'' + moduleSlug + '\',\'' + l.next_lesson_slug + '\')">' + escapeHtml(l.next_lesson_title || 'Next') + ' &rarr;</button>'
+      : '<span></span>';
+    html += '</div>';
+    html += l.is_completed
+      ? '<button class="ws-btn-complete done" disabled>✓ completed</button>'
+      : '<button class="ws-btn-complete" id="ws-btn-mark-complete">mark complete</button>';
+    html += '</div>';
+    return html;
+  }
+
+  function bindComplete() {
+    var btn = document.getElementById('ws-btn-mark-complete');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      btn.disabled = true;
+      btn.textContent = 'completing...';
+      fetch('/workspace/api/lessons/' + encodeURIComponent(guided.module) + '/' + encodeURIComponent(guided.slug) + '/complete', { method: 'POST' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.ok) {
+            btn.classList.add('done');
+            btn.textContent = '✓ completed';
+            if (guided.l) guided.l.is_completed = true;
+          } else {
+            btn.disabled = false;
+            btn.textContent = 'mark complete';
+          }
+        })
+        .catch(function () { btn.disabled = false; btn.textContent = 'mark complete'; });
+    });
+  }
+
+  function bindModeToggle() {
+    var t = document.getElementById('ws-mode-toggle');
+    if (!t) return;
+    t.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        lsSet('ws_lesson_mode', b.getAttribute('data-mode'));
+        renderLesson(guided.l, guided.module, guided.slug);
+      });
+    });
+  }
+
+  // split rendered lesson HTML into sections at each <h2>
+  function parseSections(html) {
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html || '';
+    var sections = [], cur = null;
+    Array.prototype.forEach.call(tmp.childNodes, function (node) {
+      if (node.nodeType === 1 && node.tagName === 'H2') {
+        cur = { title: node.textContent.trim(), body: '' };
+        sections.push(cur);
+      } else {
+        if (!cur) { cur = { title: '', body: '' }; sections.push(cur); }
+        if (node.nodeType === 1) cur.body += node.outerHTML;
+        else if (node.nodeType === 3 && node.textContent.trim()) cur.body += node.textContent;
+      }
+    });
+    if (!sections.length) sections.push({ title: '', body: html || '' });
+    return sections;
+  }
+
+  function renderLesson(l, moduleSlug, lessonSlug) {
+    guided.l = l; guided.module = moduleSlug; guided.slug = lessonSlug;
+    var mode = lsGet('ws_lesson_mode', 'guided');
+    var isActivity = (l.item_type === 'activity');
+    var header = lessonHeaderHtml(l, moduleSlug, mode);
+
+    if (mode === 'guided') {
+      guided.active = true;
+      guided.steps = parseSections(l.content_html || l.content || '');
+      guided.idx = 0;
+      content.innerHTML = header + '<div class="ws-guided" id="ws-guided"></div>';
+      content.scrollTop = 0;
+      bindModeToggle();
+      wsNav.module = null; // step nav owns the keyboard now
+      renderGuidedStep();
+      updateReadProgress();
+    } else {
+      guided.active = false;
+      var body = l.content_html || l.content || '<p>No content yet.</p>';
+      content.innerHTML = header
+        + '<div class="ws-lesson-body ws-anim' + (isActivity ? ' is-activity' : '') + '">' + body + '</div>'
+        + lessonFooterHtml(l, moduleSlug);
+      content.scrollTop = 0;
+      bindModeToggle();
+      bindComplete();
+      hydrateBlocks(content, false); // read mode: stat counts up as it scrolls into view
+      wsNav.module = moduleSlug;
+      wsNav.prev = l.prev_lesson_slug || null;
+      wsNav.next = l.next_lesson_slug || null;
+      updateReadProgress();
+    }
+  }
+
+  function renderGuidedStep() {
+    var l = guided.l, steps = guided.steps, idx = guided.idx;
+    var sec = steps[idx];
+    var isActivity = (l.item_type === 'activity');
+    var isLast = (idx === steps.length - 1);
+    var isFirst = (idx === 0);
+
+    var dots = '';
+    for (var i = 0; i < steps.length; i++) {
+      dots += '<span class="ws-step-dot' + (i < idx ? ' done' : '') + (i === idx ? ' current' : '') + '"></span>';
+    }
+
+    var backLabel = isFirst ? (l.prev_lesson_slug ? '← previous lesson' : '← back') : '← back';
+    var backDisabled = (isFirst && !l.prev_lesson_slug) ? ' disabled' : '';
+    var controls;
+    if (isLast) {
+      controls = '<div class="ws-guided-controls">'
+        + '<button class="ws-guided-btn" id="ws-g-back"' + backDisabled + '>' + backLabel + '</button>'
+        + '<div class="ws-guided-finish">'
+        + (l.is_completed
+            ? '<button class="ws-btn-complete done" disabled>✓ completed</button>'
+            : '<button class="ws-btn-complete" id="ws-btn-mark-complete">mark complete</button>')
+        + (l.next_lesson_slug ? '<button class="ws-guided-btn primary" id="ws-g-nextlesson">next lesson →</button>' : '')
+        + '</div></div>';
+    } else {
+      controls = '<div class="ws-guided-controls">'
+        + '<button class="ws-guided-btn" id="ws-g-back"' + backDisabled + '>' + backLabel + '</button>'
+        + '<button class="ws-guided-btn primary" id="ws-g-next">continue →</button>'
+        + '</div>';
+    }
+
+    var g = document.getElementById('ws-guided');
+    g.innerHTML = '<div class="ws-step ws-anim' + (isActivity ? ' is-activity' : '') + '">'
+      + '<div class="ws-step-topbar"><span class="ws-step-dots">' + dots + '</span>'
+      + '<span class="ws-step-count">' + (idx + 1) + ' / ' + steps.length + '</span></div>'
+      + (sec.title ? '<h2 class="ws-step-title" id="ws-step-title"></h2>' : '')
+      + '<div class="ws-lesson-body ws-step-body revealing' + (isActivity ? ' is-activity' : '') + '" id="ws-step-body">' + sec.body + '</div>'
+      + controls + '</div>';
+
+    var back = document.getElementById('ws-g-back');
+    if (back) back.addEventListener('click', guidedPrev);
+    var next = document.getElementById('ws-g-next');
+    if (next) next.addEventListener('click', guidedNext);
+    var nl = document.getElementById('ws-g-nextlesson');
+    if (nl) nl.addEventListener('click', function () { window.wsOpenLesson(guided.module, l.next_lesson_slug); });
+    if (isLast) bindComplete();
+
+    // reveal: type the section heading like a guide, then fade the body in
+    var titleEl = document.getElementById('ws-step-title');
+    var bodyEl = document.getElementById('ws-step-body');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function showBody() {
+      if (bodyEl) {
+        bodyEl.classList.remove('revealing'); bodyEl.classList.add('shown');
+        hydrateBlocks(bodyEl, true); // guided mode: step is already in view, animate now
+      }
+    }
+    if (sec.title && titleEl && !reduce) {
+      typewrite(titleEl, sec.title, showBody);
+    } else {
+      if (titleEl) titleEl.textContent = sec.title;
+      showBody();
+    }
+  }
+
+  function typewrite(el, text, done) {
+    guided.typing = true;
+    el.classList.add('tw-caret');
+    el.textContent = '';
+    var i = 0;
+    clearTimeout(guided.timer);
+    function finish() {
+      clearTimeout(guided.timer);
+      el.textContent = text;
+      el.classList.remove('tw-caret');
+      guided.typing = false;
+      guided.skip = null;
+      if (done) done();
+    }
+    guided.skip = finish;
+    (function tick() {
+      el.textContent = text.slice(0, i);
+      if (i < text.length) { i++; guided.timer = setTimeout(tick, 24); }
+      else { finish(); }
+    })();
+  }
+
+  function skipTyping() {
+    if (guided.typing && guided.skip) { guided.skip(); return true; }
+    return false;
+  }
+
+  function guidedNext() {
+    if (skipTyping()) return;               // first press reveals, next advances
+    if (guided.idx < guided.steps.length - 1) { guided.idx++; renderGuidedStep(); afterStep(); }
+    else if (guided.l.next_lesson_slug) { window.wsOpenLesson(guided.module, guided.l.next_lesson_slug); }
+  }
+
+  function guidedPrev() {
+    if (guided.idx > 0) { guided.idx--; renderGuidedStep(); afterStep(); }
+    else if (guided.l.prev_lesson_slug) { window.wsOpenLesson(guided.module, guided.l.prev_lesson_slug); }
+  }
+
+  function afterStep() { content.scrollTop = 0; updateReadProgress(); }
+
+  // ═══ Lesson blocks: hydrate interactive elements inside rendered content ═══
+  // `immediate`: true when the block is already on-screen (a guided step just
+  // revealed) so it should animate right away; false in read mode, where a
+  // stat block instead waits to scroll into view before counting up.
+
+  function hydrateBlocks(root, immediate) {
+    if (!root) return;
+    root.querySelectorAll('[data-block="stat"]').forEach(function (el) { initStatBlock(el, immediate); });
+    root.querySelectorAll('[data-block="reveal"]').forEach(initRevealBlock);
+    root.querySelectorAll('[data-block="quiz"]').forEach(initQuizBlock);
+    root.querySelectorAll('[data-block="calc"]').forEach(initCalcBlock);
+  }
+
+  function parseNum(s) {
+    var n = parseFloat(String(s).replace(/,/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function fmtNum(n) {
+    var rounded = Math.round(n);
+    return rounded.toLocaleString('en-US');
+  }
+
+  function animateStat(el) {
+    if (el.dataset.wsAnimated === '1') return;
+    el.dataset.wsAnimated = '1';
+    var from = parseNum(el.getAttribute('data-from'));
+    var to = parseNum(el.getAttribute('data-to'));
+    var prefix = el.getAttribute('data-prefix') || '';
+    var suffix = el.getAttribute('data-suffix') || '';
+    var valueEl = el.querySelector('.ws-stat-value');
+    if (!valueEl) return;
+    el.classList.add(to >= from ? 'is-up' : 'is-down');
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { valueEl.textContent = prefix + fmtNum(to) + suffix; return; }
+
+    var duration = 1100, start = null;
+    function ease(t) { return 1 - Math.pow(1 - t, 3); } // ease-out-cubic
+    function frame(ts) {
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var current = from + (to - from) * ease(p);
+      valueEl.textContent = prefix + fmtNum(current) + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function initStatBlock(el, immediate) {
+    if (immediate) { animateStat(el); return; }
+    if (!('IntersectionObserver' in window)) { animateStat(el); return; }
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { animateStat(el); obs.disconnect(); }
+      });
+    }, { threshold: 0.5 });
+    obs.observe(el);
+  }
+
+  function initRevealBlock(el) {
+    var btn = el.querySelector('.ws-reveal-prompt');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      el.classList.toggle('open');
+    });
+  }
+
+  function initQuizBlock(el) {
+    var options = el.querySelectorAll('.ws-quiz-option');
+    var feedback = el.querySelector('.ws-quiz-feedback');
+    options.forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (el.classList.contains('answered')) return;
+        el.classList.add('answered');
+        var isCorrect = opt.getAttribute('data-correct') === 'true';
+        options.forEach(function (o) {
+          if (o.getAttribute('data-correct') === 'true') o.classList.add('correct');
+          else if (o === opt) o.classList.add('incorrect');
+        });
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.classList.toggle('is-wrong', !isCorrect);
+          feedback.textContent = isCorrect
+            ? 'Correct — locked in.'
+            : 'Not quite — the highlighted option is correct.';
+        }
+      });
+    });
+  }
+
+  function initCalcBlock(el) {
+    var type = el.getAttribute('data-type') || 'ownership';
+    if (type !== 'ownership') return;
+
+    var symbol = el.getAttribute('data-symbol') || 'the company';
+    var price = parseNum(el.getAttribute('data-price')) || 1;
+    var sharesOut = parseNum(el.getAttribute('data-shares-outstanding')) || 1;
+
+    el.innerHTML =
+      '<div class="ws-calc-title">Ownership calculator — ' + escapeHtml(symbol) + '</div>' +
+      '<div class="ws-calc-row"><label>You invest</label>' +
+      '<input type="number" class="ws-calc-input" id="ws-calc-amount" value="1000" min="1" step="1"></div>' +
+      '<div class="ws-calc-result">' +
+      '<div class="ws-calc-result-row"><span>Shares purchased</span><span class="v" id="ws-calc-shares">—</span></div>' +
+      '<div class="ws-calc-result-row"><span>Your ownership</span><span class="v" id="ws-calc-pct">—</span></div>' +
+      '</div>' +
+      '<div class="ws-calc-note">Illustrative price ($' + fmtNum(price) + ') and shares outstanding for teaching purposes — check today’s real numbers as part of the activity.</div>';
+
+    var input = el.querySelector('#ws-calc-amount');
+    var sharesEl = el.querySelector('#ws-calc-shares');
+    var pctEl = el.querySelector('#ws-calc-pct');
+
+    function formatPercent(pct) {
+      if (pct <= 0) return '0%';
+      if (pct >= 0.01) return pct.toFixed(4) + '%';
+      // very small ownership % — show enough decimals to be non-zero,
+      // matching the "0.000003%" style the activity text uses
+      var decimals = Math.min(12, Math.max(6, Math.ceil(-Math.log10(pct)) + 2));
+      return pct.toFixed(decimals) + '%';
+    }
+
+    function recompute() {
+      var amount = parseNum(input.value);
+      var shares = amount / price;
+      var pct = (shares / sharesOut) * 100;
+      sharesEl.textContent = shares.toLocaleString('en-US', { maximumFractionDigits: 4 });
+      pctEl.textContent = formatPercent(pct);
+    }
+
+    input.addEventListener('input', recompute);
+    recompute();
+  }
 
   // ─── Signals (right-rail) ──────────────────
   function buildSignalRow(s) {

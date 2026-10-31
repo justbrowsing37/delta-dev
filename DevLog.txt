@@ -379,5 +379,178 @@ To be completed in the weeks before Jan 1 launch:
 
 
 ────────────────────────────────────────────────────────────────────────────────
+2026-07-27 — App Boot Fix, Local Dev Pipeline, and the Guided Lesson Experience
+────────────────────────────────────────────────────────────────────────────────
+
+First real work session after a stretch where the day job left no time for
+Delta One. Picked up from the "Generated .md files ahead of Sonnet 5 hand-off"
+commit and worked through the handoff docs (Claude Files/AGENTS.md,
+prompt.md, Code-Roadmap.md, Company.md). This entry covers everything built
+since, across five branches/PRs, all against the GitHub repo
+(github.com/justbrowsing37/delta-dev) rather than editing main directly.
+
+─── PR #1 — Fix app boot (branch fix/app-boot) ────────────────────────────────
+
+The app was completely broken on startup. An earlier bot-removal pass deleted
+the BotEvent model but left app/services/__init__.py still importing
+SignalExplainerService, which still imported the deleted model — the whole
+import chain failed and every smoke test errored (5 failed, 4 passed, 11
+errors, app wouldn't even boot).
+
+    • Removed the dead app/services/signal_explainer.py and its import —
+      nothing in routes/ referenced it, it was already orphaned
+    • Realigned tests/test_smoke.py to the curriculum-first product: dropped
+      BotEvent/signal_explainer references, removed the two bot-only tests
+      (sweep_config, bot_logger — that private infra is gone from the repo),
+      pointed the API auth-guard test at a real route (/api/concepts)
+    • Result: app boots clean, all 6 blueprints load, 18 passed
+
+─── PR #2 — Run Module 0 end-to-end locally (branch feat/run-module-0) ───────
+
+The docs flagged a real mismatch: content/ has markdown curriculum files, but
+the app is DB-backed (SQLAlchemy models + seed scripts), and nothing
+connected the two. Built that bridge so Module 0 — the content already
+written — actually renders in a running app, on a local SQLite DB with no
+Postgres/Supabase needed.
+
+    • New seeds/load_content.py: reads content/module-N/X.Y[-A]-slug.md,
+      derives ordering + lesson-vs-activity from the filename, converts
+      markdown to HTML, links each activity back to its lesson, syncs into
+      the DB. Re-running re-syncs a module, so editing a .md file and
+      re-running updates what the app serves
+    • Fixed seeds/__init__.py, which imported a function name
+      (seed_curriculum) that didn't exist — this broke importing the whole
+      seeds package
+    • Fixed app/extensions.py's Flask-Login user_loader: it passed the
+      session's string user id straight into a UUID-typed query, which threw
+      on SQLite ('str' object has no attribute 'hex') — login was completely
+      broken locally. Now coerces to uuid.UUID first
+    • Verified: all 9 Module 0 items load in order, workspace HTTP endpoints
+      return real lesson HTML for a logged-in user, 18 passed
+
+─── PR #3 — Lesson-delivery spine (branch feat/lesson-experience) ────────────
+
+The lesson flow worked but was almost entirely unstyled — workspace.css only
+covered the terminal/3-column shell. This is the design spine everything
+else inherits.
+
+    • Unified the workspace accent to the brand green (#4ade80) — it had
+      drifted to lime (#c8ff00), out of sync with the rest of the site
+    • Full lesson typography: terminal-marked headings, readable body column,
+      branded "// note" blockquote callouts, terminal-style list markers
+    • Styled the module browser, lesson rows, lesson header, footer nav, and
+      the whole dashboard (focus bar, progress bars, next-action, status
+      strip)
+    • Interactions: a reading-progress bar, fade/rise-in transitions,
+      keyboard nav (←/k, →/j), a "mark complete" checkmark-pop animation
+
+─── PR #4 — Guided tour-style lessons (branch feat/guided-lessons) ───────────
+
+Bhanu wanted lessons to feel like a tour guide walking you through each
+section, not a wall of text — with typewriter text as one option. Lessons
+are already written in clear <h2> sections, so each one became a guided
+step.
+
+    • parseSections() splits a lesson's rendered HTML at each <h2> into
+      steps; one step per screen with dots + a "2 / 6" counter
+    • Section heading types out like a guide introducing the next stop
+      (skippable — pressing continue mid-type just finishes the line),
+      respects prefers-reduced-motion
+    • Keyboard: →/space/j advances a step then rolls into the next lesson;
+      ←/k goes back
+    • Guided ⇄ Read toggle in the header, persisted, so the full-scroll view
+      is always available
+    • Last step surfaces mark-complete + next-lesson
+
+─── PR #5 — Lesson blocks + content depth + progress-bar fix (still on
+    feat/lesson-blocks) ─────────────────────────────────────────────────────
+
+Bhanu's next note: guided mode was good but every lesson was still just
+text — "we have everything and then just one or two lines of text." Wanted a
+real mix: buttons, interactivity, something with more visual weight. Then,
+after the first pass, a second note: some guided steps were themselves only
+2-3 lines, which made the new reading-progress bar feel pointless. Both
+addressed in this PR.
+
+Block library (seeds/load_content.py + workspace.css/js):
+    • A shortcode syntax authors write straight into the markdown:
+      [[stat from=".." to=".." prefix=".." label=".."]]
+      [[reveal prompt=".."]] ... [[/reveal]]
+      [[quiz]] Q: .. / - option *(correct)* .. [[/quiz]]
+      [[calc type="ownership" symbol=".." price=".." shares_outstanding=".."]]
+    • These expand to raw HTML block elements *before* the markdown pass —
+      python-markdown leaves block-level raw HTML untouched, so it composes
+      cleanly with normal prose. workspace.js hydrates each into a live
+      widget wherever it renders (guided step or read view)
+    • stat: a number counts up (e.g. NVDA $150 -> $1,000) with ease-out
+      animation; auto-colors green/red based on direction
+    • reveal: tap a question, the answer expands
+    • quiz: inline multiple choice with instant correct/incorrect feedback
+    • calc: a live ownership-percentage calculator (built for activity 0.1A,
+      which literally asks the learner to do this math)
+
+Content depth pass (all 5 lessons in content/module-0/):
+    • Two sections per lesson were single sentences ("The idea in one
+      sentence", "Next") — thin standalone guided steps. Merged the hook into
+      the opening of "Why this matters" as a bolded lead line; dropped "Next"
+      entirely (redundant with the app's own next-lesson button)
+    • Substantially expanded every remaining section — each lesson now runs
+      ~700-790 words across 4 steps (was 6 thinner steps)
+    • Wired blocks into real content: stat + reveal + quiz in lesson 0.1
+      (NVDA), reveal + quiz in 0.2 (META buyback), stat + reveal + quiz in
+      0.3 (NVDA daily volume), stat + reveal + quiz in 0.4 (the META
+      380->88 crash — renders in the red "down" stat color), reveal + quiz
+      in 0.5. Ownership calculator wired into activity 0.1A
+
+Progress-bar fix (workspace.js):
+    • Pure scroll-based progress barely moved on a short step (or jumped
+      straight to 100%). Guided-mode progress is now step-aware: completed
+      steps count fully (idx/total), and the current step's own scroll
+      position contributes its remaining fraction on top — so the bar always
+      advances meaningfully regardless of any single step's length
+
+─── Where things stand ────────────────────────────────────────────────────────
+
+Five PRs open on GitHub, stacked in this order (none merged yet — waiting on
+Bhanu's review/merge):
+
+    fix/app-boot (#1) -> feat/run-module-0 (#2) -> feat/lesson-experience (#3)
+    -> feat/guided-lessons (#4) -> feat/lesson-blocks (#5)
+
+To run it locally against SQLite (no Postgres needed):
+
+    DATABASE_URL="sqlite:///delta_local.db" .venv/bin/python -m seeds.load_content
+    DATABASE_URL="sqlite:///delta_local.db" .venv/bin/flask --app app run --debug
+
+Canonical test logins (from the app's own `flask --app app seed-users` CLI
+command — wipes and recreates these 3 every time it's run):
+
+    admin@admin.com / admin123      (tier: admin)
+    test@core.com   / testing123    (tier: core)
+    test@pro.com    / testing1234   (tier: pro)
+
+─── Tooling note ──────────────────────────────────────────────────────────────
+
+Registered the zen-browser MCP server (sh6drack/zen-mcp — real browser
+automation for Zen Browser via WebSocket/WebDriver BiDi, not to be confused
+with the unrelated "zen-mcp-server" multi-model-orchestration projects with a
+similar name) at user scope in Claude Code, so it's available in any future
+session for visually driving/screenshotting the running app. Needs Zen
+launched with `--remote-debugging-port 9222` to actually connect.
+
+─── Open items / natural next steps ───────────────────────────────────────────
+
+    [ ] Get the 5 open PRs reviewed and merged (in the stacked order above)
+    [ ] A 5th block type — an annotated/interactive diagram (e.g. the order
+        book, buyers/sellers matching) — was discussed as the most literal
+        version of the "tour guide explains each item" vision but not yet
+        built
+    [ ] Wire lesson blocks + the content-depth pass into modules 1+ once
+        written (module-0 is now the reference template for tone/structure)
+    [ ] Everything else from the pre-launch DB checklist below is still
+        untouched — this session was entirely local/dev-mode work
+
+
+────────────────────────────────────────────────────────────────────────────────
 END OF DEVELOPMENT LOG
 ────────────────────────────────────────────────────────────────────────────────

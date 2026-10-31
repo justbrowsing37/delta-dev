@@ -32,10 +32,25 @@
     if (content) content.addEventListener('scroll', updateReadProgress, { passive: true });
   })();
 
+  // In guided mode a single step can be short, so pure scroll-based progress
+  // barely moves (or jumps straight to 100%). Instead, treat the bar as
+  // "how far through the tour" — completed steps count fully, and the
+  // current step contributes its own scroll fraction on top, so the bar
+  // always advances meaningfully as you move through the lesson regardless
+  // of any one step's length. Read mode keeps plain whole-document scroll.
   function updateReadProgress() {
     if (!readBar || !content) return;
-    var max = content.scrollHeight - content.clientHeight;
-    var pct = max > 0 ? (content.scrollTop / max) * 100 : 0;
+    var pct;
+    if (guided.active && guided.steps.length) {
+      var total = guided.steps.length;
+      var base = guided.idx / total;
+      var max = content.scrollHeight - content.clientHeight;
+      var withinStep = max > 0 ? Math.min(content.scrollTop / max, 1) : 1;
+      pct = (base + withinStep * (1 / total)) * 100;
+    } else {
+      var docMax = content.scrollHeight - content.clientHeight;
+      pct = docMax > 0 ? (content.scrollTop / docMax) * 100 : 0;
+    }
     readBar.firstChild.style.width = pct + '%';
   }
 
@@ -510,6 +525,7 @@
       bindModeToggle();
       wsNav.module = null; // step nav owns the keyboard now
       renderGuidedStep();
+      updateReadProgress();
     } else {
       guided.active = false;
       var body = l.content_html || l.content || '<p>No content yet.</p>';
@@ -519,6 +535,7 @@
       content.scrollTop = 0;
       bindModeToggle();
       bindComplete();
+      hydrateBlocks(content, false); // read mode: stat counts up as it scrolls into view
       wsNav.module = moduleSlug;
       wsNav.prev = l.prev_lesson_slug || null;
       wsNav.next = l.next_lesson_slug || null;
@@ -577,7 +594,12 @@
     var titleEl = document.getElementById('ws-step-title');
     var bodyEl = document.getElementById('ws-step-body');
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function showBody() { if (bodyEl) { bodyEl.classList.remove('revealing'); bodyEl.classList.add('shown'); } }
+    function showBody() {
+      if (bodyEl) {
+        bodyEl.classList.remove('revealing'); bodyEl.classList.add('shown');
+        hydrateBlocks(bodyEl, true); // guided mode: step is already in view, animate now
+      }
+    }
     if (sec.title && titleEl && !reduce) {
       typewrite(titleEl, sec.title, showBody);
     } else {
@@ -625,6 +647,140 @@
   }
 
   function afterStep() { content.scrollTop = 0; updateReadProgress(); }
+
+  // ═══ Lesson blocks: hydrate interactive elements inside rendered content ═══
+  // `immediate`: true when the block is already on-screen (a guided step just
+  // revealed) so it should animate right away; false in read mode, where a
+  // stat block instead waits to scroll into view before counting up.
+
+  function hydrateBlocks(root, immediate) {
+    if (!root) return;
+    root.querySelectorAll('[data-block="stat"]').forEach(function (el) { initStatBlock(el, immediate); });
+    root.querySelectorAll('[data-block="reveal"]').forEach(initRevealBlock);
+    root.querySelectorAll('[data-block="quiz"]').forEach(initQuizBlock);
+    root.querySelectorAll('[data-block="calc"]').forEach(initCalcBlock);
+  }
+
+  function parseNum(s) {
+    var n = parseFloat(String(s).replace(/,/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function fmtNum(n) {
+    var rounded = Math.round(n);
+    return rounded.toLocaleString('en-US');
+  }
+
+  function animateStat(el) {
+    if (el.dataset.wsAnimated === '1') return;
+    el.dataset.wsAnimated = '1';
+    var from = parseNum(el.getAttribute('data-from'));
+    var to = parseNum(el.getAttribute('data-to'));
+    var prefix = el.getAttribute('data-prefix') || '';
+    var suffix = el.getAttribute('data-suffix') || '';
+    var valueEl = el.querySelector('.ws-stat-value');
+    if (!valueEl) return;
+    el.classList.add(to >= from ? 'is-up' : 'is-down');
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { valueEl.textContent = prefix + fmtNum(to) + suffix; return; }
+
+    var duration = 1100, start = null;
+    function ease(t) { return 1 - Math.pow(1 - t, 3); } // ease-out-cubic
+    function frame(ts) {
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var current = from + (to - from) * ease(p);
+      valueEl.textContent = prefix + fmtNum(current) + suffix;
+      if (p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function initStatBlock(el, immediate) {
+    if (immediate) { animateStat(el); return; }
+    if (!('IntersectionObserver' in window)) { animateStat(el); return; }
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { animateStat(el); obs.disconnect(); }
+      });
+    }, { threshold: 0.5 });
+    obs.observe(el);
+  }
+
+  function initRevealBlock(el) {
+    var btn = el.querySelector('.ws-reveal-prompt');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      el.classList.toggle('open');
+    });
+  }
+
+  function initQuizBlock(el) {
+    var options = el.querySelectorAll('.ws-quiz-option');
+    var feedback = el.querySelector('.ws-quiz-feedback');
+    options.forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        if (el.classList.contains('answered')) return;
+        el.classList.add('answered');
+        var isCorrect = opt.getAttribute('data-correct') === 'true';
+        options.forEach(function (o) {
+          if (o.getAttribute('data-correct') === 'true') o.classList.add('correct');
+          else if (o === opt) o.classList.add('incorrect');
+        });
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.classList.toggle('is-wrong', !isCorrect);
+          feedback.textContent = isCorrect
+            ? 'Correct — locked in.'
+            : 'Not quite — the highlighted option is correct.';
+        }
+      });
+    });
+  }
+
+  function initCalcBlock(el) {
+    var type = el.getAttribute('data-type') || 'ownership';
+    if (type !== 'ownership') return;
+
+    var symbol = el.getAttribute('data-symbol') || 'the company';
+    var price = parseNum(el.getAttribute('data-price')) || 1;
+    var sharesOut = parseNum(el.getAttribute('data-shares-outstanding')) || 1;
+
+    el.innerHTML =
+      '<div class="ws-calc-title">Ownership calculator — ' + escapeHtml(symbol) + '</div>' +
+      '<div class="ws-calc-row"><label>You invest</label>' +
+      '<input type="number" class="ws-calc-input" id="ws-calc-amount" value="1000" min="1" step="1"></div>' +
+      '<div class="ws-calc-result">' +
+      '<div class="ws-calc-result-row"><span>Shares purchased</span><span class="v" id="ws-calc-shares">—</span></div>' +
+      '<div class="ws-calc-result-row"><span>Your ownership</span><span class="v" id="ws-calc-pct">—</span></div>' +
+      '</div>' +
+      '<div class="ws-calc-note">Illustrative price ($' + fmtNum(price) + ') and shares outstanding for teaching purposes — check today’s real numbers as part of the activity.</div>';
+
+    var input = el.querySelector('#ws-calc-amount');
+    var sharesEl = el.querySelector('#ws-calc-shares');
+    var pctEl = el.querySelector('#ws-calc-pct');
+
+    function formatPercent(pct) {
+      if (pct <= 0) return '0%';
+      if (pct >= 0.01) return pct.toFixed(4) + '%';
+      // very small ownership % — show enough decimals to be non-zero,
+      // matching the "0.000003%" style the activity text uses
+      var decimals = Math.min(12, Math.max(6, Math.ceil(-Math.log10(pct)) + 2));
+      return pct.toFixed(decimals) + '%';
+    }
+
+    function recompute() {
+      var amount = parseNum(input.value);
+      var shares = amount / price;
+      var pct = (shares / sharesOut) * 100;
+      sharesEl.textContent = shares.toLocaleString('en-US', { maximumFractionDigits: 4 });
+      pctEl.textContent = formatPercent(pct);
+    }
+
+    input.addEventListener('input', recompute);
+    recompute();
+  }
 
   // ─── Signals (right-rail) ──────────────────
   function buildSignalRow(s) {

@@ -41,15 +41,39 @@ The current implementation is a Flask app with SQLAlchemy models, Flask blueprin
 ## Files to read first
 
 Start by reading these files in order:
-1. AGENTS.md
-2. docs/product-vision.md
-3. docs/roadmap.md
-4. docs/technical-spec.md
-5. docs/contributor-guide.md
-6. app/__init__.py
-7. app/services/curriculum.py
-8. app/routes/workspace.py
-9. tests/test_smoke.py
+1. **DevLog.txt** — the running development log. Always read this FIRST,
+   before anything else, in every session. It's the plain-English record of
+   what's actually been built, what's in progress, and what's still open —
+   more current than any of the docs below. See "Documentation policy" below
+   for the write-back rule.
+2. AGENTS.md
+3. docs/product-vision.md
+4. docs/roadmap.md
+5. docs/technical-spec.md
+6. docs/contributor-guide.md
+7. app/__init__.py
+8. app/services/curriculum.py
+9. app/routes/workspace.py
+10. tests/test_smoke.py
+
+## Documentation policy — keep DevLog.txt current
+
+DevLog.txt is the single, universal running log for this project — the same
+file every session writes to, named consistently on purpose so "check the
+log" always means the same thing regardless of which model or session is
+picking this up.
+
+- At the start of every session, read DevLog.txt before doing anything else.
+- At every major milestone — a PR opened, a feature completed, a real bug
+  fixed, a meaningful architecture decision — append a new dated entry
+  before the session ends, following the existing entries' format (dated
+  section header, "─── Subsection ───" dividers, past-tense plain English,
+  bullet lists). Insert new entries just before the "END OF DEVELOPMENT LOG"
+  footer.
+- If a session produces meaningful progress but is about to end without a
+  DevLog.txt entry — or if it's been a while since the last entry and more
+  work has piled up undocumented — proactively ask Bhanu whether to add one
+  before wrapping up. Keep the ask short; he'll almost always say yes.
 
 ## Working rules
 

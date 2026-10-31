@@ -2,6 +2,12 @@
 
 This file is the canonical repo handoff for any future AI assistant continuing development on Delta One.
 
+## 0. Read DevLog.txt first — always
+
+Before anything else, in every session: read `DevLog.txt` at the repo root. It is the single, universal running development log — same file, same name, every session, on purpose, so "check the log" always means the same thing no matter which model or session picks this project up next. It is more current than this file or any doc in `docs/`, since it's a plain-English record of what was actually built, in what order, and why — not just the intended direction.
+
+**Write-back rule:** at every major milestone (a PR opened, a feature completed, a real bug fixed, a meaningful decision made), append a new dated entry to `DevLog.txt` before the session ends, matching the existing entries' format (dated header, `─── Subsection ───` dividers, past-tense plain English, bullet lists), inserted just before the `END OF DEVELOPMENT LOG` footer. If a session makes real progress but is about to end without an entry — or a while has clearly gone by with no entry despite real work happening — proactively ask Bhanu whether to add one. Keep it short; he'll almost always say yes.
+
 ## 1. Project summary
 
 Delta One is a curriculum-first market education product.

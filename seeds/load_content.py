@@ -83,6 +83,137 @@ def to_html(body):
     return md.markdown(body, extensions=["extra", "sane_lists"])
 
 
+# ─────────────────────────────────────────────────────────────────────
+# Lesson blocks — a small shortcode syntax so a lesson can mix plain
+# prose with interactive elements (an animated stat, a tap-to-reveal
+# question, an inline check, a calculator) without leaving markdown.
+# Expanded to raw HTML *before* the markdown pass, since python-markdown
+# passes block-level raw HTML through untouched — workspace.js then
+# hydrates each `data-block` element into a live widget on render.
+#
+# Syntax:
+#   [[stat from="150" to="1000" prefix="$" label="NVDA share price"]]
+#
+#   [[reveal prompt="What do you think happens next?"]]
+#   Markdown answer text goes here.
+#   [[/reveal]]
+#
+#   [[quiz]]
+#   Q: What actually moves a stock's price?
+#   - Its ticker symbol length
+#   - What investors believe about its future *(correct)*
+#   - The company's logo
+#   [[/quiz]]
+#
+#   [[calc type="ownership" symbol="NVDA" price="135" shares_outstanding="24500000000"]]
+# ─────────────────────────────────────────────────────────────────────
+
+ATTR_RE = re.compile(r'(\w+)\s*=\s*"([^"]*)"')
+BLOCK_PAIR_RE = re.compile(r'\[\[(reveal|quiz)([^\]]*)\]\](.*?)\[\[/\1\]\]', re.DOTALL)
+BLOCK_SELF_RE = re.compile(r'\[\[(stat|calc)([^\]]*)\]\]')
+
+
+def parse_attrs(attr_str):
+    return dict(ATTR_RE.findall(attr_str or ""))
+
+
+def render_fragment(text):
+    """Render a small chunk of markdown (used inside block bodies)."""
+    return md.markdown(text.strip(), extensions=["extra", "sane_lists"])
+
+
+def build_stat_block(attrs):
+    frm = attrs.get("from", "0")
+    to = attrs.get("to", "0")
+    prefix = attrs.get("prefix", "")
+    suffix = attrs.get("suffix", "")
+    label = attrs.get("label", "")
+    return (
+        '<div class="ws-block ws-stat-block" data-block="stat" '
+        f'data-from="{frm}" data-to="{to}" data-prefix="{prefix}" data-suffix="{suffix}">'
+        f'<div class="ws-stat-value" aria-hidden="true">{prefix}{frm}{suffix}</div>'
+        f'<div class="ws-stat-label">{label}</div>'
+        '</div>'
+    )
+
+
+def build_calc_block(attrs):
+    calc_type = attrs.get("type", "ownership")
+    symbol = attrs.get("symbol", "")
+    price = attrs.get("price", "0")
+    shares_out = attrs.get("shares_outstanding", "0")
+    return (
+        '<div class="ws-block ws-calc-block" data-block="calc" '
+        f'data-type="{calc_type}" data-symbol="{symbol}" data-price="{price}" '
+        f'data-shares-outstanding="{shares_out}"></div>'
+    )
+
+
+def build_reveal_block(attrs, inner_md):
+    prompt = attrs.get("prompt", "What do you think?")
+    answer_html = render_fragment(inner_md)
+    return (
+        '<div class="ws-block ws-reveal-block" data-block="reveal">'
+        f'<button type="button" class="ws-reveal-prompt">{prompt}</button>'
+        f'<div class="ws-reveal-answer">{answer_html}</div>'
+        '</div>'
+    )
+
+
+def build_quiz_block(inner_text):
+    lines = [ln.rstrip() for ln in inner_text.strip("\n").splitlines() if ln.strip()]
+    question = ""
+    options = []
+    for ln in lines:
+        s = ln.strip()
+        if s.lower().startswith("q:"):
+            question = s[2:].strip()
+        elif s.startswith("-"):
+            opt = s[1:].strip()
+            correct = "(correct)" in opt
+            opt = opt.replace("*(correct)*", "").replace("(correct)", "").strip()
+            options.append((opt, correct))
+
+    opts_html = ""
+    for opt, correct in options:
+        opts_html += (
+            '<button type="button" class="ws-quiz-option" '
+            f'data-correct="{"true" if correct else "false"}">{opt}</button>'
+        )
+
+    return (
+        '<div class="ws-block ws-quiz-block" data-block="quiz">'
+        f'<div class="ws-quiz-question">{question}</div>'
+        f'<div class="ws-quiz-options">{opts_html}</div>'
+        '<div class="ws-quiz-feedback" hidden></div>'
+        '</div>'
+    )
+
+
+def expand_blocks(text):
+    def replace_pair(m):
+        kind, attr_str, inner = m.group(1), m.group(2), m.group(3)
+        attrs = parse_attrs(attr_str)
+        if kind == "reveal":
+            return "\n\n" + build_reveal_block(attrs, inner) + "\n\n"
+        if kind == "quiz":
+            return "\n\n" + build_quiz_block(inner) + "\n\n"
+        return ""
+
+    def replace_self(m):
+        kind, attr_str = m.group(1), m.group(2)
+        attrs = parse_attrs(attr_str)
+        if kind == "stat":
+            return "\n\n" + build_stat_block(attrs) + "\n\n"
+        if kind == "calc":
+            return "\n\n" + build_calc_block(attrs) + "\n\n"
+        return ""
+
+    text = BLOCK_PAIR_RE.sub(replace_pair, text)
+    text = BLOCK_SELF_RE.sub(replace_self, text)
+    return text
+
+
 def load_module(dir_name, meta):
     module_dir = os.path.join(CONTENT_ROOT, dir_name)
     items = []
@@ -130,7 +261,7 @@ def load_module(dir_name, meta):
             module_id=module.id,
             title=title or info["slug"],
             slug=info["slug"],
-            content=to_html(body),
+            content=to_html(expand_blocks(body)),
             content_type="html",
             item_type="activity" if info["is_activity"] else "lesson",
             connects_to=connects,
